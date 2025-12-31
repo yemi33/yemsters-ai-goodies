@@ -30,36 +30,30 @@ Add your Teams webhook URL to `~/.claude/settings.json`:
 3. Name your flow (e.g., "Claude Code Notifications")
 4. Skip the trigger selection and click **Create**
 5. Click **+ New step** → Search for "When an HTTP request is received"
-6. Add another step → Search for "Post message in a chat or channel" (Teams)
-7. Configure the Teams action:
-   - **Post as:** Flow bot
-   - **Post in:** Channel
-   - **Team:** Select your team
-   - **Channel:** Select your channel
-   - **Message:** Use dynamic content to insert `title` and `message` from the HTTP trigger
-     ```
-     **@{triggerBody()?['title']}**
-     
-     @{triggerBody()?['message']}
-     ```
-8. **Save** the flow
-9. Go back to the HTTP trigger step and copy the **HTTP URL**
-10. Add this URL to your `~/.claude/settings.json` as shown above
-
-**Request Body JSON Schema (optional but recommended):**
-```json
-{
-    "type": "object",
-    "properties": {
-        "title": {
-            "type": "string"
-        },
-        "message": {
-            "type": "string"
-        }
-    }
-}
-```
+6. In the HTTP trigger, click **Use sample payload to generate schema**
+7. Paste this sample payload:
+   ```json
+   {
+     "title": "Task Complete",
+     "message": "Successfully completed the build process"
+   }
+   ```
+8. Click **Done** - the schema will be automatically generated
+9. Add another step → Search for "Post message in a chat or channel" (Teams)
+10. Configure the Teams action:
+    - **Post as:** Flow bot
+    - **Post in:** Channel
+    - **Team:** Select your team
+    - **Channel:** Select your channel
+    - **Message:** Use dynamic content to insert `title` and `message`:
+      ```
+      **@{triggerBody()?['title']}**
+      
+      @{triggerBody()?['message']}
+      ```
+11. **Save** the flow
+12. Go back to the HTTP trigger step and copy the **HTTP URL**
+13. Add this URL to your `~/.claude/settings.json` as shown above
 
 Restart Claude Code after configuration.
 
