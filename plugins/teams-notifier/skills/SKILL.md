@@ -4,9 +4,9 @@ description: Sends completion notifications to Microsoft Teams when tasks are fi
 allowed-tools: Bash
 ---
 
-# Teams Notifier Skill (Portable)
+# Teams Notifier Skill
 
-This skill sends automatic notifications to Microsoft Teams when tasks are complete. It's configured to work across all your machines.
+This skill sends automatic notifications to Microsoft Teams when tasks are complete.
 
 ## Purpose
 
@@ -39,24 +39,6 @@ The `TEAMS_WEBHOOK_URL` environment variable should be configured in your `~/.cl
   }
 }
 ```
-
-## Cross-Machine Setup
-
-This skill is stored in `~/.claude/skills/teams-notifier/` (personal skills directory).
-
-**To use on multiple machines:**
-
-1. **Option A: Cloud sync** (Recommended)
-   - Use OneDrive, Dropbox, or iCloud to sync your `~/.claude/` directory
-   - Or create a symlink: `ln -s ~/OneDrive/.claude ~/.claude`
-
-2. **Option B: Manual copy**
-   - Copy `~/.claude/skills/teams-notifier/` to each machine
-   - Copy the `env` section from `~/.claude/settings.json` to each machine
-
-3. **Option C: Use the setup script** (provided below)
-   - Run the setup script on each new machine
-   - It will configure everything automatically
 
 ## Examples
 
@@ -92,6 +74,40 @@ The notification includes:
 - A clear title indicating completion
 - A summary of what was accomplished
 - Timestamp of when the work finished
+
+## Optional: Automatic Notifications on Exit
+
+Would you like to automatically get notified when conversations end? You can set up a Stop hook that sends Teams notifications whenever you exit Claude Code.
+
+To enable this, add the following hook configuration to your `~/.claude/settings.json`:
+
+```json
+{
+  "env": {
+    "TEAMS_WEBHOOK_URL": "your-webhook-url-here"
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Analyze what task was just completed in this conversation. Generate a concise title (3-8 words) and a brief message (1-2 sentences) summarizing what was accomplished. Then send a Teams notification using this bash command:\n\ncurl -X POST \"$TEAMS_WEBHOOK_URL\" -H \"Content-Type: application/json\" -d '{\"title\": \"YOUR_TITLE\", \"message\": \"YOUR_MESSAGE\"}'\n\nReplace YOUR_TITLE and YOUR_MESSAGE with your generated content. Be specific about what was done (e.g., file names, features added, bugs fixed).",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+With this hook enabled, Claude will automatically:
+- Analyze what was accomplished in the conversation
+- Generate a summary
+- Send a Teams notification when you exit
+
+This is completely optional and can be added/removed at any time.
 
 ## Troubleshooting
 
