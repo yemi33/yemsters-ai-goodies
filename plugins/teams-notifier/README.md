@@ -23,12 +23,43 @@ Add your Teams webhook URL to `~/.claude/settings.json`:
 }
 ```
 
-### Getting a Teams Webhook URL
+### Getting a Webhook URL via Power Automate
 
-1. Go to your Teams channel
-2. Click the three dots (...) → Connectors → Incoming Webhook
-3. Configure and copy the webhook URL
-4. Add it to your settings as shown above
+1. Go to [Power Automate](https://make.powerautomate.com)
+2. Click **Create** → **Automated cloud flow**
+3. Name your flow (e.g., "Claude Code Notifications")
+4. Skip the trigger selection and click **Create**
+5. Click **+ New step** → Search for "When an HTTP request is received"
+6. Add another step → Search for "Post message in a chat or channel" (Teams)
+7. Configure the Teams action:
+   - **Post as:** Flow bot
+   - **Post in:** Channel
+   - **Team:** Select your team
+   - **Channel:** Select your channel
+   - **Message:** Use dynamic content to insert `title` and `message` from the HTTP trigger
+     ```
+     **@{triggerBody()?['title']}**
+     
+     @{triggerBody()?['message']}
+     ```
+8. **Save** the flow
+9. Go back to the HTTP trigger step and copy the **HTTP URL**
+10. Add this URL to your `~/.claude/settings.json` as shown above
+
+**Request Body JSON Schema (optional but recommended):**
+```json
+{
+    "type": "object",
+    "properties": {
+        "title": {
+            "type": "string"
+        },
+        "message": {
+            "type": "string"
+        }
+    }
+}
+```
 
 Restart Claude Code after configuration.
 
@@ -75,9 +106,10 @@ Or simply ask Claude: "Send me a test Teams notification"
    curl -X POST "$TEAMS_WEBHOOK_URL" -H "Content-Type: application/json" -d '{"title":"Test","message":"Hello"}'
    ```
 
-2. **Check Teams channel:**
-   - Verify the webhook is still active
-   - Check if the channel still exists
+2. **Check Power Automate flow:**
+   - Verify the flow is turned on
+   - Check the run history for errors
+   - Ensure you have permissions to post in the Teams channel
 
 3. **Update webhook URL:**
    If you need to update the webhook URL, edit `~/.claude/settings.json` and restart Claude Code

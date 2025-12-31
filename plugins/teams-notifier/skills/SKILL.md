@@ -40,6 +40,29 @@ The `TEAMS_WEBHOOK_URL` environment variable should be configured in your `~/.cl
 }
 ```
 
+### Getting a Webhook URL via Power Automate
+
+1. Go to [Power Automate](https://make.powerautomate.com)
+2. Click **Create** → **Automated cloud flow**
+3. Name your flow (e.g., "Claude Code Notifications")
+4. Skip the trigger selection and click **Create**
+5. Click **+ New step** → Search for "When an HTTP request is received"
+6. Add another step → Search for "Post message in a chat or channel" (Teams)
+7. Configure the Teams action:
+   - **Post as:** Flow bot
+   - **Post in:** Channel
+   - **Team:** Select your team
+   - **Channel:** Select your channel
+   - **Message:** Use dynamic content to insert `title` and `message`:
+     ```
+     **@{triggerBody()?['title']}**
+     
+     @{triggerBody()?['message']}
+     ```
+8. **Save** the flow
+9. Go back to the HTTP trigger and copy the **HTTP URL**
+10. Add this URL to your `~/.claude/settings.json`
+
 ## Examples
 
 ### Task completion
@@ -113,7 +136,8 @@ This is completely optional and can be added/removed at any time.
 
 **Webhook not working?**
 - Verify `$TEAMS_WEBHOOK_URL` is set: `echo $TEAMS_WEBHOOK_URL`
-- Check that the webhook URL is still active in Teams
+- Check that the Power Automate flow is turned on
+- Check the flow run history for errors
 - Test manually: `curl -X POST "$TEAMS_WEBHOOK_URL" -H "Content-Type: application/json" -d '{"title":"Test","message":"Testing"}'`
 
 **Skill not loading?**
