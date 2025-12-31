@@ -1,0 +1,16 @@
+{
+  "name": "yemsters-ai-goodies",
+  "owner": {
+    "name": "Yemi"
+  },
+  "metadata": {
+    "description": "Marketplace for AI goodies created by Yemi"
+  },
+  "plugins": [
+    {
+      "name": "teams-notifier",
+      "source": "./plugins/teams-notifier",
+      "description": "Sends completion notifications to Microsoft Teams when tasks are finished"
+    }
+  ]
+}

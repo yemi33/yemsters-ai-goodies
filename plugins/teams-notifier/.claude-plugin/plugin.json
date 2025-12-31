@@ -1,0 +1,5 @@
+{
+  "name": "teams-notifier",
+  "description": "Sends completion notifications to Microsoft Teams when tasks are finished",
+  "version": "1.0.0"
+}
