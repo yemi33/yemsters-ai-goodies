@@ -28,6 +28,19 @@ curl -X POST "$TEAMS_WEBHOOK_URL" \
   -d '{"title": "Task Complete", "message": "Brief description of what was accomplished"}'
 ```
 
+### What to Include
+
+**Title** (2-5 words):
+- Use action-oriented phrases: "Feature Complete", "Bug Fixed", "Tests Passing", "Build Successful"
+- Be specific about the type of work: "Refactoring Complete", "API Deployed", "Database Migrated"
+- Keep it concise and scannable
+
+**Message** (1-3 sentences):
+- Summarize what was accomplished with specific details
+- Include relevant file names, feature names, or module names
+- Mention measurable outcomes when applicable (e.g., "reduced load time by 40%", "fixed 5 failing tests")
+- Be specific enough that the user knows exactly what was done without needing to check
+
 ## Environment Setup
 
 The `TEAMS_WEBHOOK_URL` environment variable should be configured in your `~/.claude/settings.json`:
