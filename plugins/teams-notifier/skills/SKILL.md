@@ -105,7 +105,7 @@ To enable this, add the following hook configuration to your `~/.claude/settings
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Analyze what task was just completed in this conversation. Generate a concise title (3-8 words) and a brief message (1-2 sentences) summarizing what was accomplished. Then send a Teams notification using this bash command:\n\ncurl -X POST \"$TEAMS_WEBHOOK_URL\" -H \"Content-Type: application/json\" -d '{\"title\": \"YOUR_TITLE\", \"message\": \"YOUR_MESSAGE\"}'\n\nReplace YOUR_TITLE and YOUR_MESSAGE with your generated content. Be specific about what was done (e.g., file names, features added, bugs fixed).",
+            "prompt": "Analyze what task was just completed in this conversation. Generate a concise title (3-8 words) and a brief message (1-2 sentences) summarizing what was accomplished. Then invoke the /teams-notifier skill to send the notification. Be specific about what was done (e.g., file names, features added, bugs fixed).",
             "timeout": 30
           }
         ]
