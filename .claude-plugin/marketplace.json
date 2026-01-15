@@ -11,6 +11,11 @@
       "name": "teams-notifier",
       "source": "./plugins/teams-notifier",
       "description": "Sends completion notifications to Microsoft Teams when tasks are finished"
+    },
+    {
+      "name": "teams-plan-tracker",
+      "source": "./plugins/teams-plan-tracker",
+      "description": "Automatically posts plans to Teams and threads PR updates as replies. Tracks plan IDs and manages the workflow between plan creation, PR creation, and completion tracking."
     }
   ]
 }

@@ -1,0 +1,5 @@
+{
+  "name": "teams-plan-tracker",
+  "description": "Automatically posts plans to Teams and threads PR updates as replies. Tracks plan IDs and manages the workflow between plan creation, PR creation, and completion tracking.",
+  "version": "1.0.0"
+}
