@@ -20,14 +20,23 @@ This plugin creates a seamless workflow between Claude's planning mode and Micro
 
 ## Installation
 
-### 1. Install the Plugin
+### 1. Add the Plugin Marketplace
+
+First, add the yemsters-ai-goodies marketplace to Claude Code:
 
 ```bash
-# Clone or add this plugin to your Claude plugins directory
-cp -r plugins/teams-plan-tracker ~/.claude/skills/teams-plan-tracker
+claude plugins marketplace add https://github.com/yemishin/yemsters-ai-goodies
 ```
 
-### 2. Configure Environment Variables
+### 2. Install the Plugin
+
+Install the teams-plan-tracker plugin:
+
+```bash
+claude plugins install yemsters-ai-goodies/teams-plan-tracker
+```
+
+### 3. Configure Environment Variables
 
 Add to your `~/.claude/settings.json`:
 
@@ -39,7 +48,7 @@ Add to your `~/.claude/settings.json`:
 }
 ```
 
-### 3. Set Up Power Automate Flow
+### 4. Set Up Power Automate Flow
 
 The plugin requires a Power Automate flow with:
 
@@ -52,7 +61,7 @@ The plugin requires a Power Automate flow with:
   - If `event_type` is "plan": Post to Teams and save message IDs to SharePoint
   - If `event_type` is "pr_update": Look up plan in SharePoint and reply to that message
 
-### 4. Enable in CLAUDE.md (Optional)
+### 5. Enable in CLAUDE.md (Optional)
 
 To make this automatic, add to your `~/.claude/CLAUDE.md`:
 
