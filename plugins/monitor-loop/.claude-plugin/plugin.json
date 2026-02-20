@@ -1,0 +1,5 @@
+{
+  "name": "monitor-loop",
+  "description": "Background polling loop that monitors a set of items, acts on them each round, and stops when a done condition is met",
+  "version": "1.0.0"
+}
