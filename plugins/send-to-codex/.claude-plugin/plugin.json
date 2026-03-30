@@ -1,0 +1,5 @@
+{
+  "name": "send-to-codex",
+  "description": "Delegate the current plan and conversation context to GitHub Copilot CLI (agency copilot) in headless mode for autonomous execution.",
+  "version": "1.0.0"
+}
