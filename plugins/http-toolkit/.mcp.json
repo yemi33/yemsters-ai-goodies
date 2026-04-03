@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "http-toolkit": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/start.js"]
+    }
+  }
+}

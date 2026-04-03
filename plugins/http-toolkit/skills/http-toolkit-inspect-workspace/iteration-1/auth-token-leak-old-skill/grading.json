@@ -1,0 +1,27 @@
+{
+  "eval_id": 3,
+  "eval_name": "auth-token-leak",
+  "configuration": "old_skill",
+  "expectations": [
+    {
+      "text": "Response uses search_traffic (not list_requests) to find auth-related traffic",
+      "passed": true,
+      "evidence": "Step 1 uses search_traffic with pattern \"(?i)authorization\", searchIn: \"request_headers\""
+    },
+    {
+      "text": "Response uses searchIn: 'request_headers' to target authorization headers",
+      "passed": true,
+      "evidence": "search_traffic(..., searchIn: \"request_headers\", ...) — correct field used"
+    },
+    {
+      "text": "Response uses a regex pattern that would match Authorization headers or Bearer tokens",
+      "passed": true,
+      "evidence": "Uses \"(?i)authorization\" and \"(?i)bearer\\s+[a-zA-Z0-9\\-._~+/]+=*\" — thorough patterns, arguably better than the new skill's suggestion"
+    },
+    {
+      "text": "Response explains how to identify which domains are receiving the auth tokens",
+      "passed": true,
+      "evidence": "Step 4 provides domain table with api.yourapp.com, auth.microsoft.com (expected), analytics.thirdparty.io, cdn.somecdn.net (flagged as unexpected)"
+    }
+  ]
+}

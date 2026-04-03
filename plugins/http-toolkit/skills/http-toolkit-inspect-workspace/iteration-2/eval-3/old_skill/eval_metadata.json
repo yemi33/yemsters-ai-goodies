@@ -1,0 +1,6 @@
+{
+  "eval_id": 3,
+  "eval_name": "auth-token-leak",
+  "prompt": "I think my app might be sending the user's auth token somewhere it shouldn't. Can you search all the captured traffic and flag any requests that include authorization headers or bearer tokens, and tell me which domains they're going to?",
+  "assertions": []
+}

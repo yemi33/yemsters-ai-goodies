@@ -1,0 +1,32 @@
+{
+  "eval_id": 1,
+  "eval_name": "android-setup",
+  "configuration": "old_skill",
+  "expectations": [
+    {
+      "text": "Response includes a call or description of calling start_proxy to start the proxy",
+      "passed": false,
+      "evidence": "Explicitly states 'I do not currently have MCP tools for configuring the proxy' and 'I cannot: Start or stop a capture session via MCP.' Falls back to manual HTTP Toolkit desktop app instructions."
+    },
+    {
+      "text": "Response mentions installing or trusting the CA certificate (caCertPath / ca.pem)",
+      "passed": true,
+      "evidence": "Step 3/4 describes CA certificate installation from general knowledge (not skill-directed), including manual download path"
+    },
+    {
+      "text": "Response includes Android-specific setup: either network_security_config.xml or mention of certificate trust for API 24+",
+      "passed": true,
+      "evidence": "Section 4 includes full network_security_config.xml snippet with debug-overrides — from general knowledge about Android, not from skill content"
+    },
+    {
+      "text": "Response tells the user to configure their device/WiFi proxy to point at the returned proxy URL",
+      "passed": true,
+      "evidence": "Step 3 'Connect Your Android Device' includes manual WiFi proxy configuration instructions"
+    },
+    {
+      "text": "Response asks the user to trigger their app traffic and indicates what to do next (inspect), rather than stopping at setup",
+      "passed": true,
+      "evidence": "'Let me know when you have traffic flowing and I will start digging in.' at the end"
+    }
+  ]
+}

@@ -1,0 +1,293 @@
+{
+  "metadata": {
+    "skill_name": "http-toolkit-inspect",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-03-18T01:25:41Z",
+    "evals_run": [
+      1,
+      2,
+      3
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 50.0,
+        "tokens": 13238,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Response includes a call or description of calling start_proxy to start the proxy",
+          "passed": false,
+          "evidence": "Explicitly states 'I do not currently have MCP tools for configuring the proxy' and 'I cannot: Start or stop a capture session via MCP.' Falls back to manual HTTP Toolkit desktop app instructions."
+        },
+        {
+          "text": "Response mentions installing or trusting the CA certificate (caCertPath / ca.pem)",
+          "passed": true,
+          "evidence": "Step 3/4 describes CA certificate installation from general knowledge (not skill-directed), including manual download path"
+        },
+        {
+          "text": "Response includes Android-specific setup: either network_security_config.xml or mention of certificate trust for API 24+",
+          "passed": true,
+          "evidence": "Section 4 includes full network_security_config.xml snippet with debug-overrides \u00e2\u20ac\u201d from general knowledge about Android, not from skill content"
+        },
+        {
+          "text": "Response tells the user to configure their device/WiFi proxy to point at the returned proxy URL",
+          "passed": true,
+          "evidence": "Step 3 'Connect Your Android Device' includes manual WiFi proxy configuration instructions"
+        },
+        {
+          "text": "Response asks the user to trigger their app traffic and indicates what to do next (inspect), rather than stopping at setup",
+          "passed": true,
+          "evidence": "'Let me know when you have traffic flowing and I will start digging in.' at the end"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6666666666666666,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 38.6,
+        "tokens": 13018,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Response uses list_requests with statusCode: 401 (correct param name and value, not a URL pattern or method filter)",
+          "passed": true,
+          "evidence": "list_requests(statusCode: 401, limit: 50) \u00e2\u20ac\u201d correct parameter used"
+        },
+        {
+          "text": "Response calls or describes calling get_request_detail with an id from the list results",
+          "passed": true,
+          "evidence": "Step 2 calls get_request_detail for req_101 and req_115 (those with non-zero body_size)"
+        },
+        {
+          "text": "Response references correct return field names: body, headers, contentType \u00e2\u20ac\u201d not 'timing' or 'status' (wrong names from old skill)",
+          "passed": false,
+          "evidence": "list_requests example shows { \"status\": 401 } (wrong, should be statusCode), \"content-type\" (wrong, should be contentType), \"body_size\" (wrong, should be bodySize). get_request_detail response shows \"timing\": { \"start\": ..., \"duration_ms\": ... } \u00e2\u20ac\u201d the old skill documented 'timing' as a return field but it doesn't exist."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 39.1,
+        "tokens": 12965,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Response uses search_traffic (not list_requests) to find auth-related traffic",
+          "passed": true,
+          "evidence": "Step 1 uses search_traffic with pattern \"(?i)authorization\", searchIn: \"request_headers\""
+        },
+        {
+          "text": "Response uses searchIn: 'request_headers' to target authorization headers",
+          "passed": true,
+          "evidence": "search_traffic(..., searchIn: \"request_headers\", ...) \u00e2\u20ac\u201d correct field used"
+        },
+        {
+          "text": "Response uses a regex pattern that would match Authorization headers or Bearer tokens",
+          "passed": true,
+          "evidence": "Uses \"(?i)authorization\" and \"(?i)bearer\\s+[a-zA-Z0-9\\-._~+/]+=*\" \u00e2\u20ac\u201d thorough patterns, arguably better than the new skill's suggestion"
+        },
+        {
+          "text": "Response explains how to identify which domains are receiving the auth tokens",
+          "passed": true,
+          "evidence": "Step 4 provides domain table with api.yourapp.com, auth.microsoft.com (expected), analytics.thirdparty.io, cdn.somecdn.net (flagged as unexpected)"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 48.1,
+        "tokens": 13934,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Response includes a call or description of calling start_proxy to start the proxy",
+          "passed": true,
+          "evidence": "Step 1 explicitly calls start_proxy() and shows the expected return shape with proxyUrl and caCertPath"
+        },
+        {
+          "text": "Response mentions installing or trusting the CA certificate (caCertPath / ca.pem)",
+          "passed": true,
+          "evidence": "Section B 'Install the CA certificate on your device' with full instructions for installing ca.pem"
+        },
+        {
+          "text": "Response includes Android-specific setup: either network_security_config.xml or mention of certificate trust for API 24+",
+          "passed": true,
+          "evidence": "Includes full network_security_config.xml snippet with <debug-overrides><trust-anchors><certificates src=\"user\" /></trust-anchors></debug-overrides> and AndroidManifest.xml reference"
+        },
+        {
+          "text": "Response tells the user to configure their device/WiFi proxy to point at the returned proxy URL",
+          "passed": true,
+          "evidence": "Section A 'Configure your Android device to use the proxy' with manual WiFi proxy instructions including hostname and port 8080"
+        },
+        {
+          "text": "Response asks the user to trigger their app traffic and indicates what to do next (inspect), rather than stopping at setup",
+          "passed": true,
+          "evidence": "Step 3: 'Go ahead and use your app \u00e2\u20ac\u201d tap through the flows you want to inspect. Then let me know and I'll pull up what was captured.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 49.5,
+        "tokens": 14185,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Response uses list_requests with statusCode: 401 (correct param name and value, not a URL pattern or method filter)",
+          "passed": true,
+          "evidence": "list_requests(statusCode: 401) with JSON arguments { \"statusCode\": 401 } \u00e2\u20ac\u201d correct parameter name and value"
+        },
+        {
+          "text": "Response calls or describes calling get_request_detail with an id from the list results",
+          "passed": true,
+          "evidence": "Step 2 calls get_request_detail for each returned request ID (req_001 through req_004) in parallel"
+        },
+        {
+          "text": "Response references correct return field names: body, headers, contentType \u00e2\u20ac\u201d not 'timing' or 'status' (wrong names from old skill)",
+          "passed": true,
+          "evidence": "Uses correct field names: statusCode, contentType, bodySize in list results. get_request_detail response shows body, headers, timestamp correctly."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 69.8,
+        "tokens": 14238,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Response uses search_traffic (not list_requests) to find auth-related traffic",
+          "passed": true,
+          "evidence": "Step 2 uses search_traffic with the exact pattern from the skill's 'Is my app leaking credentials?' workflow"
+        },
+        {
+          "text": "Response uses searchIn: 'request_headers' to target authorization headers",
+          "passed": true,
+          "evidence": "search_traffic(pattern: \"Bearer |Authorization|api.?key\", searchIn: \"request_headers\", limit: 100)"
+        },
+        {
+          "text": "Response uses a regex pattern that would match Authorization headers or Bearer tokens",
+          "passed": true,
+          "evidence": "Pattern \"Bearer |Authorization|api.?key\" directly from the skill's workflow example \u00e2\u20ac\u201d matches Authorization header name and Bearer keyword"
+        },
+        {
+          "text": "Response explains how to identify which domains are receiving the auth tokens",
+          "passed": true,
+          "evidence": "Provides domain table: api.myapp.com, auth.myapp.com (expected), analytics.thirdparty.io, logs.datadog.com (suspicious). Uses url field from search results and get_traffic_stats topDomains."
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "old_skill": {
+      "pass_rate": {
+        "mean": 0.8222,
+        "stddev": 0.1678,
+        "min": 0.6667,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 42.5667,
+        "stddev": 6.4423,
+        "min": 38.6,
+        "max": 50.0
+      },
+      "tokens": {
+        "mean": 13073.6667,
+        "stddev": 144.763,
+        "min": 12965,
+        "max": 13238
+      }
+    },
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 55.8,
+        "stddev": 12.1445,
+        "min": 48.1,
+        "max": 69.8
+      },
+      "tokens": {
+        "mean": 14119.0,
+        "stddev": 162.3915,
+        "min": 13934,
+        "max": 14238
+      }
+    },
+    "delta": {
+      "pass_rate": "-0.18",
+      "time_seconds": "-13.2",
+      "tokens": "-1045"
+    }
+  },
+  "notes": []
+}

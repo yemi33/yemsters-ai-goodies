@@ -1,0 +1,27 @@
+{
+  "eval_id": 3,
+  "eval_name": "auth-token-leak",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "Response uses search_traffic (not list_requests) to find auth-related traffic",
+      "passed": true,
+      "evidence": "Step 2 uses search_traffic with the exact pattern from the skill's 'Is my app leaking credentials?' workflow"
+    },
+    {
+      "text": "Response uses searchIn: 'request_headers' to target authorization headers",
+      "passed": true,
+      "evidence": "search_traffic(pattern: \"Bearer |Authorization|api.?key\", searchIn: \"request_headers\", limit: 100)"
+    },
+    {
+      "text": "Response uses a regex pattern that would match Authorization headers or Bearer tokens",
+      "passed": true,
+      "evidence": "Pattern \"Bearer |Authorization|api.?key\" directly from the skill's workflow example — matches Authorization header name and Bearer keyword"
+    },
+    {
+      "text": "Response explains how to identify which domains are receiving the auth tokens",
+      "passed": true,
+      "evidence": "Provides domain table: api.myapp.com, auth.myapp.com (expected), analytics.thirdparty.io, logs.datadog.com (suspicious). Uses url field from search results and get_traffic_stats topDomains."
+    }
+  ]
+}

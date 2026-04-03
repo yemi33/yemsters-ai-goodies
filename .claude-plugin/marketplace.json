@@ -19,14 +19,25 @@
     },
     {
       "name": "prism",
-      "source": {
-        "source": "git-subdir",
-        "url": "https://office.visualstudio.com/DefaultCollection/ISS/_git/constellation",
-        "path": "prism"
-      },
+      "source": "./plugins/prism",
       "description": "Track stacked PR dependencies and completion status with a live dashboard. Auto-updates when PRs are created.",
       "version": "1.1.0",
       "keywords": ["pr", "dependency", "tracker", "dashboard", "plan"],
+      "category": "productivity"
+    },
+    {
+      "name": "http-toolkit",
+      "source": "./plugins/http-toolkit",
+      "description": "HTTPS-intercepting proxy MCP server for capturing and inspecting network traffic from mobile apps, browsers, and other HTTP clients",
+      "version": "0.1.0",
+      "keywords": ["http", "https", "proxy", "network", "traffic", "inspection", "debugging"],
+      "category": "developer-tools"
+    },
+    {
+      "name": "loop-page-viewer",
+      "source": "./plugins/loop-page-viewer",
+      "description": "MCP app that renders Loop pages inline in chat with view and edit capabilities",
+      "keywords": ["loop", "pages", "viewer", "mcp"],
       "category": "productivity"
     }
   ]

@@ -1,0 +1,6 @@
+{
+  "eval_id": 1,
+  "eval_name": "android-setup",
+  "prompt": "I want to see what API calls my Android app is making. It's a debug build and I have the source. How do I set up the proxy and start capturing traffic?",
+  "assertions": []
+}

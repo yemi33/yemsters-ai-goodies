@@ -1,0 +1,32 @@
+{
+  "eval_name": "eval-3",
+  "configuration": "old_skill",
+  "expectations": [
+    {
+      "text": "Response uses search_traffic (not list_requests) to find auth-related traffic",
+      "passed": true,
+      "evidence": "search_traffic called with credential-leak pattern from skill"
+    },
+    {
+      "text": "Response uses searchIn: 'request_headers' to target authorization headers",
+      "passed": true,
+      "evidence": "searchIn: 'request_headers' used correctly"
+    },
+    {
+      "text": "Response uses a regex pattern that would match Authorization headers or Bearer tokens",
+      "passed": true,
+      "evidence": "Pattern 'Bearer |Authorization|api.?key' from skill workflow \u2014 same as new skill"
+    },
+    {
+      "text": "Response explains how to identify which domains are receiving the auth tokens",
+      "passed": true,
+      "evidence": "Domain table with api.myapp.com (expected) vs analytics.third-party-tracker.io, logs.third-party-tracker.io, crash-reports.external-service.net (suspicious)"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  }
+}

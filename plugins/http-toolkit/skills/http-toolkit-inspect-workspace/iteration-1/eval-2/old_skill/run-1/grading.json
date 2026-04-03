@@ -1,0 +1,28 @@
+{
+  "eval_id": 2,
+  "eval_name": "find-401-errors",
+  "configuration": "old_skill",
+  "expectations": [
+    {
+      "text": "Response uses list_requests with statusCode: 401 (correct param name and value, not a URL pattern or method filter)",
+      "passed": true,
+      "evidence": "list_requests(statusCode: 401, limit: 50) \u00e2\u20ac\u201d correct parameter used"
+    },
+    {
+      "text": "Response calls or describes calling get_request_detail with an id from the list results",
+      "passed": true,
+      "evidence": "Step 2 calls get_request_detail for req_101 and req_115 (those with non-zero body_size)"
+    },
+    {
+      "text": "Response references correct return field names: body, headers, contentType \u00e2\u20ac\u201d not 'timing' or 'status' (wrong names from old skill)",
+      "passed": false,
+      "evidence": "list_requests example shows { \"status\": 401 } (wrong, should be statusCode), \"content-type\" (wrong, should be contentType), \"body_size\" (wrong, should be bodySize). get_request_detail response shows \"timing\": { \"start\": ..., \"duration_ms\": ... } \u00e2\u20ac\u201d the old skill documented 'timing' as a return field but it doesn't exist."
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 1,
+    "total": 3,
+    "pass_rate": 0.6666666666666666
+  }
+}

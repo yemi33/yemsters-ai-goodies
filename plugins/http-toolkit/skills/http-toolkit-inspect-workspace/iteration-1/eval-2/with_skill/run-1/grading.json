@@ -1,0 +1,28 @@
+{
+  "eval_id": 2,
+  "eval_name": "find-401-errors",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "Response uses list_requests with statusCode: 401 (correct param name and value, not a URL pattern or method filter)",
+      "passed": true,
+      "evidence": "list_requests(statusCode: 401) with JSON arguments { \"statusCode\": 401 } \u00e2\u20ac\u201d correct parameter name and value"
+    },
+    {
+      "text": "Response calls or describes calling get_request_detail with an id from the list results",
+      "passed": true,
+      "evidence": "Step 2 calls get_request_detail for each returned request ID (req_001 through req_004) in parallel"
+    },
+    {
+      "text": "Response references correct return field names: body, headers, contentType \u00e2\u20ac\u201d not 'timing' or 'status' (wrong names from old skill)",
+      "passed": true,
+      "evidence": "Uses correct field names: statusCode, contentType, bodySize in list results. get_request_detail response shows body, headers, timestamp correctly."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 0,
+    "total": 3,
+    "pass_rate": 1.0
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "eval_name": "eval-3",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "Response uses search_traffic (not list_requests) to find auth-related traffic",
+      "passed": true,
+      "evidence": "search_traffic called with pattern 'Bearer |Authorization|api.?key', searchIn: 'request_headers'"
+    },
+    {
+      "text": "Response uses searchIn: 'request_headers' to target authorization headers",
+      "passed": true,
+      "evidence": "searchIn: 'request_headers' \u2014 from skill's workflow pattern"
+    },
+    {
+      "text": "Response uses a regex pattern that would match Authorization headers or Bearer tokens",
+      "passed": true,
+      "evidence": "Pattern 'Bearer |Authorization|api.?key' matches both Authorization header name and Bearer keyword"
+    },
+    {
+      "text": "Response explains how to identify which domains are receiving the auth tokens",
+      "passed": true,
+      "evidence": "Domain table with api.yourapp.com (expected) vs analytics.thirdparty-tracker.io, logs.datadogservice.net, telemetry.unknown-cdn.xyz (suspicious)"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  }
+}

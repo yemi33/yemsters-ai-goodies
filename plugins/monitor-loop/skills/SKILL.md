@@ -1,3 +1,8 @@
+---
+name: monitor-loop
+description: "Orchestrates a structured background polling loop with a coordinator agent that checks items on a timed interval, takes corrective action, and logs progress until a done condition is met. This skill provides the specific coordinator prompt template, sleep-chaining pattern, and progress logging format needed to run reliable multi-round monitoring. ALWAYS use this skill when the user asks you to: watch or babysit PRs/builds/jobs/deployments, poll an endpoint or status repeatedly, check something every N minutes, keep monitoring until done, or any task requiring periodic background checks with automatic remediation. Without this skill you will not set up the polling loop correctly."
+---
+
 # Skill: monitor-loop
 
 Runs a background polling loop that repeatedly checks a set of items, acts on them, and stops when a completion condition is met. Generic orchestration — bring your own check/act logic.

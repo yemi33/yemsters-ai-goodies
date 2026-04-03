@@ -1,0 +1,37 @@
+{
+  "eval_name": "eval-1",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "Response includes a call or description of calling start_proxy to start the proxy",
+      "passed": true,
+      "evidence": "Step 1 calls start_proxy() with simulated response showing proxyUrl and caCertPath"
+    },
+    {
+      "text": "Response mentions installing or trusting the CA certificate (caCertPath / ca.pem)",
+      "passed": true,
+      "evidence": "Step 3 'Install the CA certificate on your Android device' with full instructions"
+    },
+    {
+      "text": "Response includes Android-specific setup: either network_security_config.xml or mention of certificate trust for API 24+",
+      "passed": true,
+      "evidence": "Note for Android 7+ (API 24+) explains network_security_config.xml \u2014 derived from user saying 'Android app', not hardcoded in skill"
+    },
+    {
+      "text": "Response tells the user to configure their device/WiFi proxy to point at the returned proxy URL",
+      "passed": true,
+      "evidence": "Step 2 'Set the proxy on your Android device' with hostname and port 8080 instructions"
+    },
+    {
+      "text": "Response asks the user to trigger their app traffic and indicates what to do next (inspect), rather than stopping at setup",
+      "passed": true,
+      "evidence": "Step 4 'Trigger the traffic you want to capture' then 'let me know and I'll query what was captured'"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  }
+}

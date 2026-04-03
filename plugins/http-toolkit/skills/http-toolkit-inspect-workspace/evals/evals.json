@@ -1,0 +1,77 @@
+{
+  "skill_name": "http-toolkit-inspect",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I want to see what API calls my Android app is making. It's a debug build and I have the source. How do I set up the proxy and start capturing traffic?",
+      "expected_output": "Step-by-step setup guidance: start_proxy call, proxy URL, CA cert installation for Android (including network_security_config.xml note for API 24+), and prompt to trigger traffic.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "a1-calls-start-proxy",
+          "text": "Response includes a call or description of calling start_proxy to start the proxy"
+        },
+        {
+          "id": "a1-mentions-ca-cert",
+          "text": "Response mentions installing or trusting the CA certificate (caCertPath / ca.pem)"
+        },
+        {
+          "id": "a1-android-config",
+          "text": "Response includes Android-specific setup: either network_security_config.xml or mention of certificate trust for API 24+"
+        },
+        {
+          "id": "a1-proxy-url-device",
+          "text": "Response tells the user to configure their device/WiFi proxy to point at the returned proxy URL"
+        },
+        {
+          "id": "a1-prompts-next-step",
+          "text": "Response asks the user to trigger their app traffic and indicates what to do next (inspect), rather than stopping at setup"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "The proxy has been running for a few minutes and I browsed around the app. I'm seeing a lot of 401 errors. Can you find them and show me what the failed request bodies look like?",
+      "expected_output": "list_requests(statusCode: 401) to find failures, then get_request_detail on the results to show request bodies. Clear explanation of what headers/body contain.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "a2-uses-status-filter",
+          "text": "Response uses list_requests with statusCode: 401 (correct param name and value, not a URL pattern or method filter)"
+        },
+        {
+          "id": "a2-calls-get-request-detail",
+          "text": "Response calls or describes calling get_request_detail with an id from the list results"
+        },
+        {
+          "id": "a2-correct-return-shape",
+          "text": "Response references correct return field names: body, headers, contentType — not 'timing' or 'status' (wrong names from old skill)"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I think my app might be sending the user's auth token somewhere it shouldn't. Can you search all the captured traffic and flag any requests that include authorization headers or bearer tokens, and tell me which domains they're going to?",
+      "expected_output": "search_traffic with an auth-related regex pattern, searchIn: request_headers. Summary of domains receiving auth headers, with request details for suspicious ones.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "a3-uses-search-traffic",
+          "text": "Response uses search_traffic (not list_requests) to find auth-related traffic"
+        },
+        {
+          "id": "a3-correct-search-in",
+          "text": "Response uses searchIn: 'request_headers' to target authorization headers"
+        },
+        {
+          "id": "a3-auth-pattern",
+          "text": "Response uses a regex pattern that would match Authorization headers or Bearer tokens (e.g., 'Bearer', 'Authorization', 'Bearer |api')"
+        },
+        {
+          "id": "a3-reports-domains",
+          "text": "Response explains how to identify which domains are receiving the auth tokens (from url field in results or get_traffic_stats)"
+        }
+      ]
+    }
+  ]
+}

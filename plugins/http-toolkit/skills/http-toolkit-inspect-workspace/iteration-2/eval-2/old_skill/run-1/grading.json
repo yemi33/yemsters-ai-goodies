@@ -1,0 +1,27 @@
+{
+  "eval_name": "eval-2",
+  "configuration": "old_skill",
+  "expectations": [
+    {
+      "text": "Response uses list_requests with statusCode: 401 (correct param name and value, not a URL pattern or method filter)",
+      "passed": true,
+      "evidence": "list_requests(statusCode: 401) called correctly"
+    },
+    {
+      "text": "Response calls or describes calling get_request_detail with an id from the list results",
+      "passed": true,
+      "evidence": "get_request_detail called on each result with non-zero bodySize"
+    },
+    {
+      "text": "Response references correct return field names: body, headers, contentType \u2014 not 'timing' or 'status' (wrong names from old skill)",
+      "passed": true,
+      "evidence": "Uses correct field names \u2014 iteration-2-baseline has correct return shapes"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 0,
+    "total": 3,
+    "pass_rate": 1.0
+  }
+}

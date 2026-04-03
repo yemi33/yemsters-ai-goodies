@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eval Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #faf9f5;
+      --surface: #ffffff;
+      --border: #e8e6dc;
+      --text: #141413;
+      --text-muted: #b0aea5;
+      --accent: #d97757;
+      --accent-hover: #c4613f;
+      --green: #788c5d;
+      --green-bg: #eef2e8;
+      --red: #c44;
+      --red-bg: #fceaea;
+      --header-bg: #141413;
+      --header-text: #faf9f5;
+      --radius: 6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .header h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .header .instructions {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 0.25rem;
+    }
+    .header .progress {
+      font-size: 0.875rem;
+      opacity: 0.8;
+      text-align: right;
+    }
+
+    /* ---- Main content ---- */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* ---- Sections ---- */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      flex-shrink: 0;
+    }
+    .section-header {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .section-body {
+      padding: 1rem;
+    }
+
+    /* ---- Config badge ---- */
+    .config-badge {
+      display: inline-block;
+      padding: 0.2rem 0.625rem;
+      border-radius: 9999px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-left: 0.75rem;
+      vertical-align: middle;
+    }
+    .config-badge.config-primary {
+      background: rgba(33, 150, 243, 0.12);
+      color: #1976d2;
+    }
+    .config-badge.config-baseline {
+      background: rgba(255, 193, 7, 0.15);
+      color: #f57f17;
+    }
+
+    /* ---- Prompt ---- */
+    .prompt-text {
+      white-space: pre-wrap;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+    }
+
+    /* ---- Outputs ---- */
+    .output-file {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .output-file + .output-file {
+      margin-top: 1rem;
+    }
+    .output-file-header {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .output-file-header .dl-btn {
+      font-size: 0.7rem;
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+    .output-file-header .dl-btn:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+    .output-file-content {
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+    .output-file-content pre {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    .output-file-content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    .output-file-content iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+    .output-file-content table {
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+      width: 100%;
+    }
+    .output-file-content table td,
+    .output-file-content table th {
+      border: 1px solid var(--border);
+      padding: 0.375rem 0.5rem;
+      text-align: left;
+    }
+    .output-file-content table th {
+      background: var(--bg);
+      font-weight: 600;
+    }
+    .output-file-content .download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .output-file-content .download-link:hover {
+      background: var(--border);
+    }
+    .empty-state {
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    /* ---- Feedback ---- */
+    .prev-feedback {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.625rem 0.75rem;
+      margin-top: 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .prev-feedback-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+      color: var(--text-muted);
+    }
+    .feedback-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      line-height: 1.5;
+      resize: vertical;
+      color: var(--text);
+    }
+    .feedback-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .feedback-status {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      min-height: 1.1em;
+    }
+
+    /* ---- Grades (collapsible) ---- */
+    .grades-toggle {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .grades-toggle:hover {
+      color: var(--accent);
+    }
+    .grades-toggle .arrow {
+      margin-right: 0.5rem;
+      transition: transform 0.15s;
+      font-size: 0.75rem;
+    }
+    .grades-toggle .arrow.open {
+      transform: rotate(90deg);
+    }
+    .grades-content {
+      display: none;
+      margin-top: 0.75rem;
+    }
+    .grades-content.open {
+      display: block;
+    }
+    .grades-summary {
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .grade-badge {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .grade-pass { background: var(--green-bg); color: var(--green); }
+    .grade-fail { background: var(--red-bg); color: var(--red); }
+    .assertion-list {
+      list-style: none;
+    }
+    .assertion-item {
+      padding: 0.625rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8125rem;
+    }
+    .assertion-item:last-child { border-bottom: none; }
+    .assertion-status {
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+    .assertion-status.pass { color: var(--green); }
+    .assertion-status.fail { color: var(--red); }
+    .assertion-evidence {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      padding-left: 1.5rem;
+    }
+
+    /* ---- View tabs ---- */
+    .view-tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 2rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .view-tab {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.625rem 1.25rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .view-tab:hover { color: var(--text); }
+    .view-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .view-panel { display: none; }
+    .view-panel.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+    /* ---- Benchmark view ---- */
+    .benchmark-view {
+      padding: 1.5rem 2rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .benchmark-table {
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.8125rem;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+    .benchmark-table th, .benchmark-table td {
+      padding: 0.625rem 0.75rem;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+    .benchmark-table th {
+      font-family: 'Poppins', sans-serif;
+      background: var(--header-bg);
+      color: var(--header-text);
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .benchmark-table tr:hover { background: var(--bg); }
+    .benchmark-table tr.benchmark-row-with { background: rgba(33, 150, 243, 0.06); }
+    .benchmark-table tr.benchmark-row-without { background: rgba(255, 193, 7, 0.06); }
+    .benchmark-table tr.benchmark-row-with:hover { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-without:hover { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-table tr.benchmark-row-avg { font-weight: 600; border-top: 2px solid var(--border); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-with { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-without { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-delta-positive { color: var(--green); font-weight: 600; }
+    .benchmark-delta-negative { color: var(--red); font-weight: 600; }
+    .benchmark-notes {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    .benchmark-notes h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+    .benchmark-notes ul {
+      list-style: disc;
+      padding-left: 1.25rem;
+    }
+    .benchmark-notes li {
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin-bottom: 0.375rem;
+    }
+    .benchmark-empty {
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+      padding: 3rem;
+    }
+
+    /* ---- Navigation ---- */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+    .nav-btn:hover:not(:disabled) {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .done-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .done-btn:hover {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .done-btn.ready {
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+    .done-btn.ready:hover {
+      background: var(--accent-hover);
+    }
+    /* ---- Done overlay ---- */
+    .done-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    .done-overlay.visible {
+      display: flex;
+    }
+    .done-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 2rem 3rem;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+    }
+    .done-card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .done-card p {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .done-card .btn-row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .done-card button {
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+    .done-card button:hover {
+      background: var(--bg);
+    }
+    /* ---- Toast ---- */
+    .toast {
+      position: fixed;
+      bottom: 5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 0.625rem 1.25rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 200;
+    }
+    .toast.visible {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" style="height:100vh; display:flex; flex-direction:column;">
+    <div class="header">
+      <div>
+        <h1>Eval Review: <span id="skill-name"></span></h1>
+        <div class="instructions">Review each output and leave feedback below. Navigate with arrow keys or buttons. When done, copy feedback and paste into Claude Code.</div>
+      </div>
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <!-- View tabs (only shown when benchmark data exists) -->
+    <div class="view-tabs" id="view-tabs" style="display:none;">
+      <button class="view-tab active" onclick="switchView('outputs')">Outputs</button>
+      <button class="view-tab" onclick="switchView('benchmark')">Benchmark</button>
+    </div>
+
+    <!-- Outputs panel (qualitative review) -->
+    <div class="view-panel active" id="panel-outputs">
+    <div class="main">
+      <!-- Prompt -->
+      <div class="section">
+        <div class="section-header">Prompt <span class="config-badge" id="config-badge" style="display:none;"></span></div>
+        <div class="section-body">
+          <div class="prompt-text" id="prompt-text"></div>
+        </div>
+      </div>
+
+      <!-- Outputs -->
+      <div class="section">
+        <div class="section-header">Output</div>
+        <div class="section-body" id="outputs-body">
+          <div class="empty-state">No output files found</div>
+        </div>
+      </div>
+
+      <!-- Previous Output (collapsible) -->
+      <div class="section" id="prev-outputs-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="togglePrevOutputs()">
+            <span class="arrow" id="prev-outputs-arrow">&#9654;</span>
+            Previous Output
+          </div>
+        </div>
+        <div class="grades-content" id="prev-outputs-content"></div>
+      </div>
+
+      <!-- Grades (collapsible) -->
+      <div class="section" id="grades-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="toggleGrades()">
+            <span class="arrow" id="grades-arrow">&#9654;</span>
+            Formal Grades
+          </div>
+        </div>
+        <div class="grades-content" id="grades-content"></div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="section">
+        <div class="section-header">Your Feedback</div>
+        <div class="section-body">
+          <textarea
+            class="feedback-textarea"
+            id="feedback"
+            placeholder="What do you think of this output? Any issues, suggestions, or things that look great?"
+          ></textarea>
+          <div class="feedback-status" id="feedback-status"></div>
+          <div class="prev-feedback" id="prev-feedback" style="display:none;">
+            <div class="prev-feedback-label">Previous feedback</div>
+            <div id="prev-feedback-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav" id="outputs-nav">
+      <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">&#8592; Previous</button>
+      <button class="done-btn" id="done-btn" onclick="showDoneDialog()">Submit All Reviews</button>
+      <button class="nav-btn" id="next-btn" onclick="navigate(1)">Next &#8594;</button>
+    </div>
+    </div><!-- end panel-outputs -->
+
+    <!-- Benchmark panel (quantitative stats) -->
+    <div class="view-panel" id="panel-benchmark">
+      <div class="benchmark-view" id="benchmark-content">
+        <div class="benchmark-empty">No benchmark data available. Run a benchmark to see quantitative results here.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Done overlay -->
+  <div class="done-overlay" id="done-overlay">
+    <div class="done-card">
+      <h2>Review Complete</h2>
+      <p>Your feedback has been saved. Go back to your Claude Code session and tell Claude you're done reviewing.</p>
+      <div class="btn-row">
+        <button onclick="closeDoneDialog()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ---- Embedded data (injected by generate_review.py) ----
+    const EMBEDDED_DATA = {"skill_name": "http-toolkit-inspect", "runs": [{"id": "eval-1-old_skill-run-1", "prompt": "I want to see what API calls my Android app is making. It's a debug build and I have the source. How do I set up the proxy and start capturing traffic?", "eval_id": 1, "outputs": [{"name": "response.md", "type": "text", "content": "# Full Agent Response \u00e2\u20ac\u201d Android App Traffic Capture\n\n---\n\n## What the user said\n\n> \"I want to see what API calls my Android app is making. It's a debug build and I have the source. How do I set up the proxy and start capturing traffic?\"\n\n---\n\n## Step 1 \u00e2\u20ac\u201d Start the proxy (MCP tool call)\n\nThe first thing I do is start the proxy so I have a URL and CA cert path to give the user.\n\n**Tool call:**\n\n```\nstart_proxy()\n```\n\n**Simulated response:**\n\n```json\n{\n  \"proxyUrl\": \"http://127.0.0.1:8080\",\n  \"caCertPath\": \"/Users/yemishin/.http-toolkit-mcp/ca.pem\"\n}\n```\n\n---\n\n## Step 2 \u00e2\u20ac\u201d Tell the user what to do\n\n**Message to user:**\n\nThe proxy is running at `http://127.0.0.1:8080`. To capture your Android app's traffic you need to do two things: point the device at the proxy, and trust the CA certificate so HTTPS isn't blocked.\n\n### 2a \u00e2\u20ac\u201d Configure the Android device's Wi-Fi proxy\n\n1. On your Android device, go to **Settings \u00e2\u2020\u2019 Wi-Fi**.\n2. Long-press the network your device is connected to and choose **Modify network**.\n3. Expand **Advanced options**, set **Proxy** to **Manual**.\n4. Set **Proxy hostname** to your machine's local IP address (e.g. `192.168.1.42` \u00e2\u20ac\u201d run `ipconfig` on Windows or `ifconfig` on Mac/Linux to find it).\n5. Set **Proxy port** to `8080`.\n6. Save.\n\nYour machine and the Android device must be on the same Wi-Fi network.\n\n### 2b \u00e2\u20ac\u201d Install and trust the CA certificate\n\nBecause your app targets Android API 24+, you need to do **both** of the following:\n\n**On the device:**\n\n1. Transfer the CA cert to your device. The cert file is at:\n   `/Users/yemishin/.http-toolkit-mcp/ca.pem`\n   The easiest way is to host it briefly:\n   ```\n   python3 -m http.server 8000\n   ```\n   Then open `http://<your-machine-ip>:8000/ca.pem` in Chrome on the device and download it.\n2. Go to **Settings \u00e2\u2020\u2019 Security \u00e2\u2020\u2019 Install a certificate \u00e2\u2020\u2019 CA certificate** (exact path varies by Android version; on some devices it's under **Encryption & credentials**).\n3. Select the downloaded `.pem` file and confirm installation.\n\n**In your app source (required for API 24+ apps):**\n\nUser-installed CA certs are not trusted by default for apps targeting API 24+. Since you have the source, add a Network Security Config:\n\n1. Create or edit `res/xml/network_security_config.xml`:\n\n```xml\n<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<network-security-config>\n    <debug-overrides>\n        <trust-anchors>\n            <certificates src=\"user\" />\n        </trust-anchors>\n    </debug-overrides>\n</network-security-config>\n```\n\n   Using `<debug-overrides>` means this only applies to debug builds \u00e2\u20ac\u201d it won't affect your release build.\n\n2. Reference it in `AndroidManifest.xml` inside the `<application>` tag:\n\n```xml\n<application\n    android:networkSecurityConfig=\"@xml/network_security_config\"\n    ...>\n```\n\n3. Rebuild and reinstall the debug APK on the device.\n\n---\n\n## Step 3 \u00e2\u20ac\u201d Ask the user to trigger traffic\n\n**Message to user:**\n\nOnce the device is configured and the updated app is installed, open the app and go through whatever flow you want to capture (log in, load a feed, make a purchase, etc.). Then let me know and I'll pull the captured requests.\n\n---\n\n## Step 4 \u00e2\u20ac\u201d After user confirms traffic was triggered (Phase 2)\n\n**Tool call:**\n\n```\nlist_requests()\n```\n\n**Simulated response:**\n\n```json\n{\n  \"count\": 14,\n  \"requests\": [\n    {\n      \"id\": \"req_001\",\n      \"method\": \"POST\",\n      \"url\": \"https://api.myapp.com/v2/auth/token\",\n      \"statusCode\": 200,\n      \"timestamp\": \"2026-03-17T10:02:11Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 312\n    },\n    {\n      \"id\": \"req_002\",\n      \"method\": \"GET\",\n      \"url\": \"https://api.myapp.com/v2/user/profile\",\n      \"statusCode\": 200,\n      \"timestamp\": \"2026-03-17T10:02:13Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 874\n    },\n    {\n      \"id\": \"req_003\",\n      \"method\": \"GET\",\n      \"url\": \"https://api.myapp.com/v2/feed?page=1&limit=20\",\n      \"statusCode\": 200,\n      \"timestamp\": \"2026-03-17T10:02:14Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 4201\n    },\n    {\n      \"id\": \"req_004\",\n      \"method\": \"POST\",\n      \"url\": \"https://analytics.third-party.io/events\",\n      \"statusCode\": 204,\n      \"timestamp\": \"2026-03-17T10:02:15Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 589\n    }\n  ]\n}\n```\n\n**Message to user:**\n\nI can see 14 requests captured so far. Here's a summary of what your app is calling:\n\n| # | Method | URL | Status |\n|---|--------|-----|--------|\n| 1 | POST | `https://api.myapp.com/v2/auth/token` | 200 |\n| 2 | GET | `https://api.myapp.com/v2/user/profile` | 200 |\n| 3 | GET | `https://api.myapp.com/v2/feed?page=1&limit=20` | 200 |\n| 4 | POST | `https://analytics.third-party.io/events` | 204 |\n| \u00e2\u20ac\u00a6 | \u00e2\u20ac\u00a6 | \u00e2\u20ac\u00a6 | \u00e2\u20ac\u00a6 |\n\nA few things stand out:\n- Your app is posting to a **third-party analytics endpoint** (`analytics.third-party.io`) \u00e2\u20ac\u201d I can drill into that if you want to see what data it's sending.\n- The auth token request (req_001) succeeded \u00e2\u20ac\u201d I can inspect the request body and response if you want to see what credentials are being exchanged.\n\nWould you like me to dig into any of these? I can also run a search across all traffic if you're looking for something specific \u00e2\u20ac\u201d for example, to check whether any sensitive tokens or keys are being sent in headers.\n\n---\n\n## Notes on the workflow\n\n- All four MCP tools used: `start_proxy`, `list_requests`, `get_request_detail` (available on demand), `get_response_detail` (available on demand).\n- The `<debug-overrides>` approach in the Network Security Config is the correct, non-destructive way to handle API 24+ certificate pinning in debug builds \u00e2\u20ac\u201d it does not touch the release build's trust configuration.\n- If the user wants a clean capture after setup, the right call is `clear_traffic()` before they trigger the app flow.\n"}], "grading": {"eval_name": "eval-1", "configuration": "old_skill", "expectations": [{"text": "Response includes a call or description of calling start_proxy to start the proxy", "passed": true, "evidence": "Step 1 calls start_proxy() with simulated response"}, {"text": "Response mentions installing or trusting the CA certificate (caCertPath / ca.pem)", "passed": true, "evidence": "Step 2b describes installing and trusting the CA certificate from caCertPath"}, {"text": "Response includes Android-specific setup: either network_security_config.xml or mention of certificate trust for API 24+", "passed": true, "evidence": "Includes full network_security_config.xml for API 24+ with debug-overrides \u2014 hardcoded in iteration-1 skill"}, {"text": "Response tells the user to configure their device/WiFi proxy to point at the returned proxy URL", "passed": true, "evidence": "Step 2a includes manual proxy config for Android WiFi settings"}, {"text": "Response asks the user to trigger their app traffic and indicates what to do next (inspect), rather than stopping at setup", "passed": true, "evidence": "Step 3 asks user to trigger traffic and says it will pull captured requests"}], "summary": {"passed": 5, "failed": 0, "total": 5, "pass_rate": 1.0}}}, {"id": "eval-1-with_skill-run-1", "prompt": "I want to see what API calls my Android app is making. It's a debug build and I have the source. How do I set up the proxy and start capturing traffic?", "eval_id": 1, "outputs": [{"name": "response.md", "type": "text", "content": "# Full Agent Response \u00e2\u20ac\u201d HTTP Toolkit Proxy Setup for Android\n\n---\n\n## Step 1: Start the proxy\n\nI'll start the HTTP Toolkit proxy now so we have the details you need to configure your device.\n\n**Tool call:**\n\n```\nstart_proxy()\n```\n\n**Simulated response:**\n\n```json\n{\n  \"proxyUrl\": \"http://127.0.0.1:8080\",\n  \"caCertPath\": \"~/.http-toolkit-mcp/ca.pem\"\n}\n```\n\n---\n\n## What I tell the user after Step 1:\n\nThe proxy is running. Here's what you need to do to route your Android app's traffic through it:\n\n---\n\n### 1. Connect your Android device to the same network as your machine\n\nYour computer's proxy is at `http://127.0.0.1:8080`. Since your Android device needs to reach it over the network, use your machine's **local IP address** instead of `127.0.0.1` \u00e2\u20ac\u201d for example, `192.168.1.42`. You can find this with `ipconfig` (Windows) or `ifconfig` (Mac/Linux).\n\nSo the proxy address your device will use is something like: `http://192.168.1.42:8080`\n\n---\n\n### 2. Set the proxy on your Android device\n\n1. Go to **Settings \u00e2\u2020\u2019 Wi-Fi**\n2. Long-press your current Wi-Fi network and choose **Modify network** (or tap the gear icon)\n3. Expand **Advanced options**\n4. Set **Proxy** to **Manual**\n5. Enter your machine's local IP as the **Proxy hostname** and `8080` as the **Proxy port**\n6. Save\n\n---\n\n### 3. Install the CA certificate on your Android device (required for HTTPS)\n\nWithout this step, HTTPS connections will fail instead of being intercepted.\n\nThe CA certificate is at: `~/.http-toolkit-mcp/ca.pem`\n\nTo install it on Android:\n\n1. Copy `ca.pem` to your Android device (via USB, adb push, or a shared drive)\n2. Go to **Settings \u00e2\u2020\u2019 Security \u00e2\u2020\u2019 Install from storage** (exact path varies by Android version \u00e2\u20ac\u201d search for \"Install certificate\" if needed)\n3. Select `ca.pem` and install it as a **CA certificate** (you may need to set a PIN/password if you haven't already)\n4. Give it any name, e.g., \"HTTP Toolkit CA\"\n\n> **Note for Android 7+ (API 24+):** By default, user-installed CA certificates are NOT trusted by apps for HTTPS connections. Because you have a **debug build and the source**, you can fix this one of two ways:\n>\n> **Option A \u00e2\u20ac\u201d Add a network security config (recommended):**\n> Add the following to your app's `res/xml/network_security_config.xml`:\n> ```xml\n> <?xml version=\"1.0\" encoding=\"utf-8\"?>\n> <network-security-config>\n>     <debug-overrides>\n>         <trust-anchors>\n>             <certificates src=\"user\"/>\n>         </trust-anchors>\n>     </debug-overrides>\n> </network-security-config>\n> ```\n> Then reference it in `AndroidManifest.xml`:\n> ```xml\n> <application\n>     android:networkSecurityConfig=\"@xml/network_security_config\"\n>     ...>\n> ```\n> Rebuild and reinstall the debug APK.\n>\n> **Option B \u00e2\u20ac\u201d Use adb to push the cert as a system cert** (requires root or an emulator with a writable system partition).\n\n---\n\n### 4. Trigger the traffic you want to capture\n\nOnce the proxy is configured and the certificate is installed (and your debug build trusts it), open your app and perform whatever actions make the API calls you want to inspect.\n\n---\n\n### 5. Ready to inspect\n\nWhen you've triggered the traffic, let me know and I'll query what was captured. I can:\n\n- **List all requests** your app made\n- **Filter by domain or endpoint** (e.g., only calls to `api.yourbackend.com`)\n- **Show full request headers and body** for any call\n- **Show the full response** including status code, headers, and body\n- **Search across all traffic** for specific strings (tokens, error messages, parameter names)\n\nJust say \"show me what was captured\" or tell me what you're looking for and I'll dig in.\n\n---\n\n## Step 2 (after user triggers traffic) \u00e2\u20ac\u201d example of what I would do next:\n\nOnce the user says they've triggered their app, I would call:\n\n**Tool call:**\n\n```\nlist_requests(limit: 50)\n```\n\n**Simulated response:**\n\n```json\n{\n  \"count\": 12,\n  \"requests\": [\n    {\n      \"id\": \"req_001\",\n      \"method\": \"POST\",\n      \"url\": \"https://api.example.com/v2/auth/token\",\n      \"statusCode\": 200,\n      \"timestamp\": \"2026-03-17T10:42:01.123Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 312\n    },\n    {\n      \"id\": \"req_002\",\n      \"method\": \"GET\",\n      \"url\": \"https://api.example.com/v2/user/profile\",\n      \"statusCode\": 200,\n      \"timestamp\": \"2026-03-17T10:42:02.456Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 874\n    },\n    {\n      \"id\": \"req_003\",\n      \"method\": \"GET\",\n      \"url\": \"https://api.example.com/v2/feed?page=1&limit=20\",\n      \"statusCode\": 200,\n      \"timestamp\": \"2026-03-17T10:42:03.789Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 4210\n    },\n    {\n      \"id\": \"req_004\",\n      \"method\": \"POST\",\n      \"url\": \"https://analytics.thirdparty.io/collect\",\n      \"statusCode\": 204,\n      \"timestamp\": \"2026-03-17T10:42:04.001Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 156\n    }\n  ]\n}\n```\n\n**What I would tell the user at this point:**\n\nHere's what your app sent during that session \u00e2\u20ac\u201d 12 requests total. A few things stand out:\n\n- `POST /v2/auth/token` \u00e2\u20ac\u201d looks like a token exchange or login call\n- `GET /v2/user/profile` and `GET /v2/feed` \u00e2\u20ac\u201d standard API reads\n- `POST https://analytics.thirdparty.io/collect` \u00e2\u20ac\u201d a third-party analytics ping\n\nWhich of these do you want to drill into? I can show you the full request body and headers (including any auth tokens being sent) or the full response for any of them. Or if you're looking for something specific, tell me and I'll search across all the traffic for it.\n"}], "grading": {"eval_name": "eval-1", "configuration": "with_skill", "expectations": [{"text": "Response includes a call or description of calling start_proxy to start the proxy", "passed": true, "evidence": "Step 1 calls start_proxy() with simulated response showing proxyUrl and caCertPath"}, {"text": "Response mentions installing or trusting the CA certificate (caCertPath / ca.pem)", "passed": true, "evidence": "Step 3 'Install the CA certificate on your Android device' with full instructions"}, {"text": "Response includes Android-specific setup: either network_security_config.xml or mention of certificate trust for API 24+", "passed": true, "evidence": "Note for Android 7+ (API 24+) explains network_security_config.xml \u2014 derived from user saying 'Android app', not hardcoded in skill"}, {"text": "Response tells the user to configure their device/WiFi proxy to point at the returned proxy URL", "passed": true, "evidence": "Step 2 'Set the proxy on your Android device' with hostname and port 8080 instructions"}, {"text": "Response asks the user to trigger their app traffic and indicates what to do next (inspect), rather than stopping at setup", "passed": true, "evidence": "Step 4 'Trigger the traffic you want to capture' then 'let me know and I'll query what was captured'"}], "summary": {"passed": 5, "failed": 0, "total": 5, "pass_rate": 1.0}}}, {"id": "eval-2-old_skill-run-1", "prompt": "The proxy has been running for a few minutes and I browsed around the app. I'm seeing a lot of 401 errors. Can you find them and show me what the failed request bodies look like?", "eval_id": 2, "outputs": [{"name": "response.md", "type": "text", "content": "# Skill Evaluation Run \u00e2\u20ac\u201d Response Transcript\n\n## User Task\n\n> \"The proxy has been running for a few minutes and I browsed around the app. I'm seeing a lot of 401 errors. Can you find them and show me what the failed request bodies look like?\"\n\n---\n\n## Step 1 \u00e2\u20ac\u201d List all 401 requests\n\nThe proxy is already running and traffic has been captured, so I skip Phase 1 and go straight to querying. The user wants 401s, so I call `list_requests` filtered by status code.\n\n**Tool call:**\n\n```\nlist_requests(statusCode: 401)\n```\n\n**Simulated response:**\n\n```json\n{\n  \"count\": 4,\n  \"requests\": [\n    {\n      \"id\": \"req_a1b2c3\",\n      \"method\": \"POST\",\n      \"url\": \"https://api.example.com/v2/user/login\",\n      \"statusCode\": 401,\n      \"timestamp\": \"2026-03-17T14:22:03.441Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 87\n    },\n    {\n      \"id\": \"req_d4e5f6\",\n      \"method\": \"GET\",\n      \"url\": \"https://api.example.com/v2/profile\",\n      \"statusCode\": 401,\n      \"timestamp\": \"2026-03-17T14:22:47.109Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 0\n    },\n    {\n      \"id\": \"req_g7h8i9\",\n      \"method\": \"POST\",\n      \"url\": \"https://api.example.com/v2/refresh-token\",\n      \"statusCode\": 401,\n      \"timestamp\": \"2026-03-17T14:23:15.882Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 63\n    },\n    {\n      \"id\": \"req_j0k1l2\",\n      \"method\": \"PUT\",\n      \"url\": \"https://api.example.com/v2/settings/notifications\",\n      \"statusCode\": 401,\n      \"timestamp\": \"2026-03-17T14:24:01.320Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 112\n    }\n  ]\n}\n```\n\nI found 4 requests that returned 401. Three of them have a non-zero body size (the POST and PUT calls), so those are the interesting ones. The GET `/profile` has no request body (bodySize: 0), which makes sense for a GET. I'll fetch the request details for the three that have bodies.\n\n---\n\n## Step 2 \u00e2\u20ac\u201d Get request body for req_a1b2c3 (POST /v2/user/login)\n\n**Tool call:**\n\n```\nget_request_detail(id: \"req_a1b2c3\")\n```\n\n**Simulated response:**\n\n```json\n{\n  \"id\": \"req_a1b2c3\",\n  \"method\": \"POST\",\n  \"url\": \"https://api.example.com/v2/user/login\",\n  \"headers\": {\n    \"Content-Type\": \"application/json\",\n    \"Accept\": \"application/json\",\n    \"User-Agent\": \"ExampleApp/3.1.0 (iOS 17.4)\"\n  },\n  \"body\": \"{\\\"username\\\":\\\"alice@example.com\\\",\\\"password\\\":\\\"hunter2\\\",\\\"device_id\\\":\\\"iphone-uuid-abc123\\\"}\",\n  \"timestamp\": \"2026-03-17T14:22:03.441Z\",\n  \"contentType\": \"application/json\",\n  \"bodySize\": 87,\n  \"isBinary\": false\n}\n```\n\n---\n\n## Step 3 \u00e2\u20ac\u201d Get request body for req_g7h8i9 (POST /v2/refresh-token)\n\n**Tool call:**\n\n```\nget_request_detail(id: \"req_g7h8i9\")\n```\n\n**Simulated response:**\n\n```json\n{\n  \"id\": \"req_g7h8i9\",\n  \"method\": \"POST\",\n  \"url\": \"https://api.example.com/v2/refresh-token\",\n  \"headers\": {\n    \"Content-Type\": \"application/json\",\n    \"Accept\": \"application/json\",\n    \"Authorization\": \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.expired_payload.sig\",\n    \"User-Agent\": \"ExampleApp/3.1.0 (iOS 17.4)\"\n  },\n  \"body\": \"{\\\"refresh_token\\\":\\\"rt_9f2a3b4c5d6e7f8a9b0c\\\",\\\"client_id\\\":\\\"mobile-app-v3\\\"}\",\n  \"timestamp\": \"2026-03-17T14:23:15.882Z\",\n  \"contentType\": \"application/json\",\n  \"bodySize\": 63,\n  \"isBinary\": false\n}\n```\n\n---\n\n## Step 4 \u00e2\u20ac\u201d Get request body for req_j0k1l2 (PUT /v2/settings/notifications)\n\n**Tool call:**\n\n```\nget_request_detail(id: \"req_j0k1l2\")\n```\n\n**Simulated response:**\n\n```json\n{\n  \"id\": \"req_j0k1l2\",\n  \"method\": \"PUT\",\n  \"url\": \"https://api.example.com/v2/settings/notifications\",\n  \"headers\": {\n    \"Content-Type\": \"application/json\",\n    \"Accept\": \"application/json\",\n    \"Authorization\": \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.expired_payload.sig\",\n    \"User-Agent\": \"ExampleApp/3.1.0 (iOS 17.4)\"\n  },\n  \"body\": \"{\\\"push_enabled\\\":true,\\\"email_digest\\\":\\\"weekly\\\",\\\"in_app_sounds\\\":false,\\\"badge_count\\\":true}\",\n  \"timestamp\": \"2026-03-17T14:24:01.320Z\",\n  \"contentType\": \"application/json\",\n  \"bodySize\": 112,\n  \"isBinary\": false\n}\n```\n\n---\n\n## What I would say to the user\n\nFound **4 requests returning 401**. Three of them carried a request body \u00e2\u20ac\u201d here's what each one sent:\n\n---\n\n### 1. POST /v2/user/login \u00e2\u20ac\u201d 14:22:03\n\n```json\n{\n  \"username\": \"alice@example.com\",\n  \"password\": \"hunter2\",\n  \"device_id\": \"iphone-uuid-abc123\"\n}\n```\n\nA login attempt that the server rejected. The credentials or device ID may be wrong, or the account could be locked.\n\n---\n\n### 2. POST /v2/refresh-token \u00e2\u20ac\u201d 14:23:15\n\n```json\n{\n  \"refresh_token\": \"rt_9f2a3b4c5d6e7f8a9b0c\",\n  \"client_id\": \"mobile-app-v3\"\n}\n```\n\nThe request also carried an `Authorization: Bearer ...` header with what looks like an expired JWT. The server rejected the token refresh \u00e2\u20ac\u201d likely because the refresh token itself has already expired or been revoked.\n\n---\n\n### 3. PUT /v2/settings/notifications \u00e2\u20ac\u201d 14:24:01\n\n```json\n{\n  \"push_enabled\": true,\n  \"email_digest\": \"weekly\",\n  \"in_app_sounds\": false,\n  \"badge_count\": true\n}\n```\n\nA settings update that was rejected. It also used the same expired Bearer token in the `Authorization` header, which is almost certainly why it failed \u00e2\u20ac\u201d the app tried to make an authenticated call without a valid session.\n\n---\n\n### 4. GET /v2/profile \u00e2\u20ac\u201d 14:22:47\n\nNo request body (GET request). The server returned 401 \u00e2\u20ac\u201d again, likely a missing or invalid auth token.\n\n---\n\n**Pattern:** Requests 2, 3, and 4 all share the same expired JWT in the `Authorization` header. The login attempt (request 1) failed first, and the app continued making authenticated calls anyway without recovering a valid session. The root cause is almost certainly the login failure \u00e2\u20ac\u201d once that's fixed (or the session is properly refreshed), the downstream 401s should clear up.\n\n---\n\n## Order of Operations Summary\n\n| Step | Tool Called | Why |\n|------|-------------|-----|\n| 1 | `list_requests(statusCode: 401)` | Find all 401s in the captured traffic |\n| 2 | `get_request_detail(\"req_a1b2c3\")` | Get body of POST /login (bodySize > 0) |\n| 3 | `get_request_detail(\"req_g7h8i9\")` | Get body of POST /refresh-token (bodySize > 0) |\n| 4 | `get_request_detail(\"req_j0k1l2\")` | Get body of PUT /settings/notifications (bodySize > 0) |\n\nThe GET request (`req_d4e5f6`) was skipped for body inspection because `bodySize` was 0 \u00e2\u20ac\u201d GET requests don't carry a body. I still surfaced it in the summary since it's part of the 401 pattern.\n"}], "grading": {"eval_name": "eval-2", "configuration": "old_skill", "expectations": [{"text": "Response uses list_requests with statusCode: 401 (correct param name and value, not a URL pattern or method filter)", "passed": true, "evidence": "list_requests(statusCode: 401) called correctly"}, {"text": "Response calls or describes calling get_request_detail with an id from the list results", "passed": true, "evidence": "get_request_detail called on each result with non-zero bodySize"}, {"text": "Response references correct return field names: body, headers, contentType \u2014 not 'timing' or 'status' (wrong names from old skill)", "passed": true, "evidence": "Uses correct field names \u2014 iteration-2-baseline has correct return shapes"}], "summary": {"passed": 3, "failed": 0, "total": 3, "pass_rate": 1.0}}}, {"id": "eval-2-with_skill-run-1", "prompt": "The proxy has been running for a few minutes and I browsed around the app. I'm seeing a lot of 401 errors. Can you find them and show me what the failed request bodies look like?", "eval_id": 2, "outputs": [{"name": "response.md", "type": "text", "content": "# Skill Evaluation Response\n\n## Skill Used\n`http-toolkit-inspect` \u00e2\u20ac\u201d invoked because the user wants to find 401 errors and inspect the request bodies of failed requests, which maps directly to the \"Why is this request returning an error?\" workflow pattern in the skill.\n\n---\n\n## Step 1: Filter captured traffic to 401s\n\nSince the proxy is already running and traffic has been captured, I go straight to Phase 2. I call `list_requests` filtered to `statusCode: 401` to find all failed requests.\n\n**Tool call:**\n```\nlist_requests(statusCode: 401)\n```\n\n**Simulated response:**\n```json\n{\n  \"count\": 4,\n  \"requests\": [\n    {\n      \"id\": \"req_001\",\n      \"method\": \"POST\",\n      \"url\": \"https://api.contoso.com/v2/auth/token\",\n      \"statusCode\": 401,\n      \"timestamp\": \"2026-03-17T14:22:03.412Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 312\n    },\n    {\n      \"id\": \"req_002\",\n      \"method\": \"GET\",\n      \"url\": \"https://api.contoso.com/v2/users/me\",\n      \"statusCode\": 401,\n      \"timestamp\": \"2026-03-17T14:22:11.089Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 0\n    },\n    {\n      \"id\": \"req_003\",\n      \"method\": \"POST\",\n      \"url\": \"https://api.contoso.com/v2/sessions/refresh\",\n      \"statusCode\": 401,\n      \"timestamp\": \"2026-03-17T14:23:45.771Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 198\n    },\n    {\n      \"id\": \"req_004\",\n      \"method\": \"POST\",\n      \"url\": \"https://api.contoso.com/v2/data/submit\",\n      \"statusCode\": 401,\n      \"timestamp\": \"2026-03-17T14:25:02.334Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 540\n    }\n  ]\n}\n```\n\nI found **4 requests returning 401**. Three of them are POST requests with bodies \u00e2\u20ac\u201d I'll fetch the request details for those. The GET to `/users/me` has no body (`bodySize: 0`) so there's nothing to show there, but I'll note it.\n\n---\n\n## Step 2: Fetch request body details for the three POST requests\n\nI call `get_request_detail` on `req_001`, `req_003`, and `req_004` in parallel.\n\n**Tool call 1:**\n```\nget_request_detail(\"req_001\")\n```\n\n**Simulated response:**\n```json\n{\n  \"id\": \"req_001\",\n  \"method\": \"POST\",\n  \"url\": \"https://api.contoso.com/v2/auth/token\",\n  \"headers\": {\n    \"Content-Type\": \"application/json\",\n    \"Accept\": \"application/json\",\n    \"User-Agent\": \"ContosoApp/3.1.0 (iOS 17.4)\"\n  },\n  \"body\": \"{\\\"grant_type\\\":\\\"password\\\",\\\"username\\\":\\\"jsmith@contoso.com\\\",\\\"password\\\":\\\"hunter2\\\",\\\"client_id\\\":\\\"app-mobile-prod\\\",\\\"scope\\\":\\\"openid profile offline_access\\\"}\",\n  \"timestamp\": \"2026-03-17T14:22:03.412Z\",\n  \"contentType\": \"application/json\",\n  \"bodySize\": 312,\n  \"isBinary\": false\n}\n```\n\n**Tool call 2:**\n```\nget_request_detail(\"req_003\")\n```\n\n**Simulated response:**\n```json\n{\n  \"id\": \"req_003\",\n  \"method\": \"POST\",\n  \"url\": \"https://api.contoso.com/v2/sessions/refresh\",\n  \"headers\": {\n    \"Content-Type\": \"application/json\",\n    \"Accept\": \"application/json\",\n    \"Authorization\": \"Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.EXPIRED\",\n    \"User-Agent\": \"ContosoApp/3.1.0 (iOS 17.4)\"\n  },\n  \"body\": \"{\\\"refresh_token\\\":\\\"rt_9f8e7d6c5b4a3210\\\",\\\"client_id\\\":\\\"app-mobile-prod\\\"}\",\n  \"timestamp\": \"2026-03-17T14:23:45.771Z\",\n  \"contentType\": \"application/json\",\n  \"bodySize\": 198,\n  \"isBinary\": false\n}\n```\n\n**Tool call 3:**\n```\nget_request_detail(\"req_004\")\n```\n\n**Simulated response:**\n```json\n{\n  \"id\": \"req_004\",\n  \"method\": \"POST\",\n  \"url\": \"https://api.contoso.com/v2/data/submit\",\n  \"headers\": {\n    \"Content-Type\": \"application/json\",\n    \"Accept\": \"application/json\",\n    \"Authorization\": \"Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.EXPIRED\",\n    \"User-Agent\": \"ContosoApp/3.1.0 (iOS 17.4)\"\n  },\n  \"body\": \"{\\\"session_id\\\":\\\"sess_abc123\\\",\\\"payload\\\":{\\\"event\\\":\\\"page_view\\\",\\\"page\\\":\\\"/dashboard\\\",\\\"timestamp\\\":1742219102},\\\"metadata\\\":{\\\"app_version\\\":\\\"3.1.0\\\",\\\"platform\\\":\\\"ios\\\"}}\",\n  \"timestamp\": \"2026-03-17T14:25:02.334Z\",\n  \"contentType\": \"application/json\",\n  \"bodySize\": 540,\n  \"isBinary\": false\n}\n```\n\n---\n\n## What I tell the user\n\nI found **4 requests returning 401**. Here's what each one was sending:\n\n---\n\n### 1. `POST https://api.contoso.com/v2/auth/token` \u00e2\u20ac\u201d Login attempt (14:22:03)\n\n**Request body:**\n```json\n{\n  \"grant_type\": \"password\",\n  \"username\": \"jsmith@contoso.com\",\n  \"password\": \"hunter2\",\n  \"client_id\": \"app-mobile-prod\",\n  \"scope\": \"openid profile offline_access\"\n}\n```\n\nThis looks like a password login that the server rejected \u00e2\u20ac\u201d either the credentials are wrong or the client ID is not authorized for the `password` grant type.\n\n> **Note:** The plaintext password `hunter2` is visible in the request body. If this is unexpected, it may be worth reviewing whether this flow should use a more secure grant type.\n\n---\n\n### 2. `GET https://api.contoso.com/v2/users/me` \u00e2\u20ac\u201d Profile fetch (14:22:11)\n\nNo request body (GET request). The 401 here likely means the token from the failed login above was still used \u00e2\u20ac\u201d or no token was sent at all. You can inspect the response body for the server's error message if needed.\n\n---\n\n### 3. `POST https://api.contoso.com/v2/sessions/refresh` \u00e2\u20ac\u201d Token refresh (14:23:45)\n\n**Request body:**\n```json\n{\n  \"refresh_token\": \"rt_9f8e7d6c5b4a3210\",\n  \"client_id\": \"app-mobile-prod\"\n}\n```\n\nThe `Authorization` header contained an already-expired JWT (`...EXPIRED`). The refresh token itself may have also expired or been invalidated server-side. This is likely causing the downstream 401s.\n\n---\n\n### 4. `POST https://api.contoso.com/v2/data/submit` \u00e2\u20ac\u201d Data submission (14:25:02)\n\n**Request body:**\n```json\n{\n  \"session_id\": \"sess_abc123\",\n  \"payload\": {\n    \"event\": \"page_view\",\n    \"page\": \"/dashboard\",\n    \"timestamp\": 1742219102\n  },\n  \"metadata\": {\n    \"app_version\": \"3.1.0\",\n    \"platform\": \"ios\"\n  }\n}\n```\n\nSame expired Bearer token in the `Authorization` header. The app appears to be retrying requests with an invalid token rather than re-authenticating first.\n\n---\n\n## Summary\n\nAll 4 failures trace back to an authentication breakdown:\n\n- The initial password login (`/auth/token`) failed \u00e2\u20ac\u201d likely bad credentials or an unauthorized grant type.\n- Subsequent requests continued using an **expired Bearer token**, causing every authenticated endpoint to return 401.\n- The token refresh attempt (`/sessions/refresh`) also failed, so the app never recovered a valid session.\n\n**Suggested next steps:**\n- Confirm whether the login credentials are correct and the `password` grant type is enabled for `app-mobile-prod`.\n- Check if the refresh token `rt_9f8e7d6c5b4a3210` is still valid on the server side.\n- Look at the response bodies (via `get_response_detail`) on the auth endpoints for the server's specific error codes \u00e2\u20ac\u201d those will tell you exactly why the server is rejecting the requests.\n"}], "grading": {"eval_name": "eval-2", "configuration": "with_skill", "expectations": [{"text": "Response uses list_requests with statusCode: 401 (correct param name and value, not a URL pattern or method filter)", "passed": true, "evidence": "list_requests(statusCode: 401) \u2014 correct parameter name and value used"}, {"text": "Response calls or describes calling get_request_detail with an id from the list results", "passed": true, "evidence": "get_request_detail called on three POST requests with non-zero bodySize (in parallel)"}, {"text": "Response references correct return field names: body, headers, contentType \u2014 not 'timing' or 'status' (wrong names from old skill)", "passed": true, "evidence": "Uses contentType, bodySize, statusCode in list results. get_request_detail response shows body, headers correctly \u2014 no phantom 'timing' field"}], "summary": {"passed": 3, "failed": 0, "total": 3, "pass_rate": 1.0}}}, {"id": "eval-3-old_skill-run-1", "prompt": "I think my app might be sending the user's auth token somewhere it shouldn't. Can you search all the captured traffic and flag any requests that include authorization headers or bearer tokens, and tell me which domains they're going to?", "eval_id": 3, "outputs": [{"name": "response.md", "type": "text", "content": "# Eval-3 Response: Searching for Auth Token Leaks\n\n## User Task\n\"I think my app might be sending the user's auth token somewhere it shouldn't. Can you search all the captured traffic and flag any requests that include authorization headers or bearer tokens, and tell me which domains they're going to?\"\n\n---\n\n## Full Agent Response (what I would say and do, in order)\n\n---\n\n### Step 1: Search request headers for Authorization and Bearer tokens\n\nThe skill's \"Is my app leaking credentials?\" pattern maps directly to this request. I'll search across all captured request headers using a pattern that catches both `Authorization` headers and `Bearer` token values.\n\n**Tool call:**\n\n```\nsearch_traffic(\n  pattern: \"Bearer |Authorization|api.?key\",\n  searchIn: \"request_headers\"\n)\n```\n\n**Simulated response:**\n\n```json\n{\n  \"count\": 5,\n  \"matches\": [\n    {\n      \"id\": \"req_001\",\n      \"method\": \"POST\",\n      \"url\": \"https://api.myapp.com/v1/user/profile\",\n      \"statusCode\": 200,\n      \"timestamp\": \"2026-03-17T10:14:02Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 412,\n      \"matchContext\": \"Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6...\"\n    },\n    {\n      \"id\": \"req_002\",\n      \"method\": \"GET\",\n      \"url\": \"https://analytics.third-party-tracker.io/collect?uid=abc123\",\n      \"statusCode\": 204,\n      \"timestamp\": \"2026-03-17T10:14:05Z\",\n      \"contentType\": null,\n      \"bodySize\": 0,\n      \"matchContext\": \"Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6...\"\n    },\n    {\n      \"id\": \"req_003\",\n      \"method\": \"POST\",\n      \"url\": \"https://logs.third-party-tracker.io/events\",\n      \"statusCode\": 200,\n      \"timestamp\": \"2026-03-17T10:14:08Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 890,\n      \"matchContext\": \"Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6...\"\n    },\n    {\n      \"id\": \"req_004\",\n      \"method\": \"GET\",\n      \"url\": \"https://api.myapp.com/v1/settings\",\n      \"statusCode\": 200,\n      \"timestamp\": \"2026-03-17T10:14:10Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 198,\n      \"matchContext\": \"Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6...\"\n    },\n    {\n      \"id\": \"req_005\",\n      \"method\": \"POST\",\n      \"url\": \"https://crash-reports.external-service.net/report\",\n      \"statusCode\": 201,\n      \"timestamp\": \"2026-03-17T10:14:15Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 1240,\n      \"matchContext\": \"Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6...\"\n    }\n  ]\n}\n```\n\n---\n\n### Step 2: Inspect the suspicious requests in detail\n\nTwo of the five results go to your own domain (`api.myapp.com`), which is expected. The other three go to third-party domains. I'll pull the full request detail on those three to see exactly what headers are being sent.\n\n**Tool call 1:**\n\n```\nget_request_detail(id: \"req_002\")\n```\n\n**Simulated response:**\n\n```json\n{\n  \"id\": \"req_002\",\n  \"method\": \"GET\",\n  \"url\": \"https://analytics.third-party-tracker.io/collect?uid=abc123\",\n  \"headers\": {\n    \"Authorization\": \"Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyXzQ1NiIsImVtYWlsIjoidXNlckBleGFtcGxlLmNvbSIsImlhdCI6MTc0MjIxMDAwMCwiZXhwIjoxNzQyMjk2NDAwfQ.signature\",\n    \"User-Agent\": \"MyApp/2.3.1 (iOS 17.4; iPhone)\",\n    \"Accept\": \"*/*\"\n  },\n  \"body\": null,\n  \"timestamp\": \"2026-03-17T10:14:05Z\",\n  \"contentType\": null,\n  \"bodySize\": 0,\n  \"isBinary\": false\n}\n```\n\n**Tool call 2:**\n\n```\nget_request_detail(id: \"req_003\")\n```\n\n**Simulated response:**\n\n```json\n{\n  \"id\": \"req_003\",\n  \"method\": \"POST\",\n  \"url\": \"https://logs.third-party-tracker.io/events\",\n  \"headers\": {\n    \"Authorization\": \"Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyXzQ1NiIsImVtYWlsIjoidXNlckBleGFtcGxlLmNvbSIsImlhdCI6MTc0MjIxMDAwMCwiZXhwIjoxNzQyMjk2NDAwfQ.signature\",\n    \"Content-Type\": \"application/json\",\n    \"User-Agent\": \"MyApp/2.3.1 (iOS 17.4; iPhone)\"\n  },\n  \"body\": \"{\\\"event\\\":\\\"screen_view\\\",\\\"screen\\\":\\\"ProfilePage\\\",\\\"userId\\\":\\\"user_456\\\"}\",\n  \"timestamp\": \"2026-03-17T10:14:08Z\",\n  \"contentType\": \"application/json\",\n  \"bodySize\": 890,\n  \"isBinary\": false\n}\n```\n\n**Tool call 3:**\n\n```\nget_request_detail(id: \"req_005\")\n```\n\n**Simulated response:**\n\n```json\n{\n  \"id\": \"req_005\",\n  \"method\": \"POST\",\n  \"url\": \"https://crash-reports.external-service.net/report\",\n  \"headers\": {\n    \"Authorization\": \"Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyXzQ1NiIsImVtYWlsIjoidXNlckBleGFtcGxlLmNvbSIsImlhdCI6MTc0MjIxMDAwMCwiZXhwIjoxNzQyMjk2NDAwfQ.signature\",\n    \"Content-Type\": \"application/json\",\n    \"User-Agent\": \"MyApp/2.3.1 (iOS 17.4; iPhone)\"\n  },\n  \"body\": \"{\\\"crash_id\\\":\\\"cr_789\\\",\\\"stack_trace\\\":\\\"...\\\",\\\"user_id\\\":\\\"user_456\\\"}\",\n  \"timestamp\": \"2026-03-17T10:14:15Z\",\n  \"contentType\": \"application/json\",\n  \"bodySize\": 1240,\n  \"isBinary\": false\n}\n```\n\n---\n\n### Step 3: Report findings to the user\n\nHere is what I found and what I would tell the user:\n\n---\n\n**Found 5 requests carrying Authorization / Bearer token headers. Here's the breakdown by domain:**\n\n| Domain | # Requests | Expected? | Notes |\n|---|---|---|---|\n| `api.myapp.com` | 2 | Yes | Your own backend \u00e2\u20ac\u201d normal |\n| `analytics.third-party-tracker.io` | 1 | **Suspicious** | Analytics/tracking domain |\n| `logs.third-party-tracker.io` | 1 | **Suspicious** | Logging subdomain of same third-party |\n| `crash-reports.external-service.net` | 1 | **Suspicious** | Crash reporting service |\n\n**The three concerning requests:**\n\n1. **`analytics.third-party-tracker.io`** (req_002) \u00e2\u20ac\u201d A GET to a tracking/analytics endpoint is being sent with your full `Authorization: Bearer` JWT. The token decodes to include at minimum a user ID and email. An analytics ping has no legitimate reason to carry a user auth credential.\n\n2. **`logs.third-party-tracker.io`** (req_003) \u00e2\u20ac\u201d A POST sending event data (screen views, user ID) to the same third-party tracker, again with the full Bearer token attached. The body already contains a `userId` field, so the auth header is redundant and means the token is being leaked in addition to the user ID.\n\n3. **`crash-reports.external-service.net`** (req_005) \u00e2\u20ac\u201d A crash report POST is attaching the Bearer token. Crash reporters typically only need an API key specific to your developer account, not a per-user auth token. This is the least severe of the three, but still unintentional credential leakage.\n\n**What the token contains (decoded from the JWT payload):**\n- `sub`: `user_456`\n- `email`: `user@example.com`\n- `iat` / `exp`: issued and expires within a 24-hour window\n\n**Recommendation:** Your app appears to be setting the `Authorization` header globally (e.g., as a default header on an HTTP client instance) and that same client is being reused for third-party SDK calls. You should either:\n- Scope the `Authorization` header to requests going to your own domain only, or\n- Use separate HTTP client instances (one authenticated, one unauthenticated) for first-party vs third-party calls.\n\nWould you like me to dig deeper into any of these requests, or check the response bodies to see what the third-party services are sending back?\n\n---\n\n## Tool Call Order Summary\n\n1. `search_traffic(pattern: \"Bearer |Authorization|api.?key\", searchIn: \"request_headers\")` \u00e2\u20ac\u201d find all requests leaking auth headers\n2. `get_request_detail(id: \"req_002\")` \u00e2\u20ac\u201d inspect suspicious third-party analytics request\n3. `get_request_detail(id: \"req_003\")` \u00e2\u20ac\u201d inspect suspicious third-party logging request\n4. `get_request_detail(id: \"req_005\")` \u00e2\u20ac\u201d inspect suspicious crash reporting request\n5. Report findings to user with domain table and recommendations\n"}], "grading": {"eval_name": "eval-3", "configuration": "old_skill", "expectations": [{"text": "Response uses search_traffic (not list_requests) to find auth-related traffic", "passed": true, "evidence": "search_traffic called with credential-leak pattern from skill"}, {"text": "Response uses searchIn: 'request_headers' to target authorization headers", "passed": true, "evidence": "searchIn: 'request_headers' used correctly"}, {"text": "Response uses a regex pattern that would match Authorization headers or Bearer tokens", "passed": true, "evidence": "Pattern 'Bearer |Authorization|api.?key' from skill workflow \u2014 same as new skill"}, {"text": "Response explains how to identify which domains are receiving the auth tokens", "passed": true, "evidence": "Domain table with api.myapp.com (expected) vs analytics.third-party-tracker.io, logs.third-party-tracker.io, crash-reports.external-service.net (suspicious)"}], "summary": {"passed": 4, "failed": 0, "total": 4, "pass_rate": 1.0}}}, {"id": "eval-3-with_skill-run-1", "prompt": "I think my app might be sending the user's auth token somewhere it shouldn't. Can you search all the captured traffic and flag any requests that include authorization headers or bearer tokens, and tell me which domains they're going to?", "eval_id": 3, "outputs": [{"name": "response.md", "type": "text", "content": "# Skill Evaluation Response \u00e2\u20ac\u201d http-toolkit-inspect\n\n## Task\n\n> \"I think my app might be sending the user's auth token somewhere it shouldn't. Can you search all the captured traffic and flag any requests that include authorization headers or bearer tokens, and tell me which domains they're going to?\"\n\n---\n\n## What I Would Say and Do (Step by Step)\n\n---\n\n### Step 1 \u00e2\u20ac\u201d Search captured traffic for authorization headers and bearer tokens\n\nThis task maps directly to the \"Is my app leaking credentials?\" workflow from the skill. The proxy is assumed to already be running and traffic has been captured (the user said \"search all the captured traffic,\" implying they've already captured some). I go straight to Phase 2.\n\nI call `search_traffic` with a pattern that matches `Authorization` headers and `Bearer` tokens, scoped to request headers only.\n\n**Tool call:**\n\n```\nsearch_traffic(\n  pattern: \"Bearer |Authorization|api.?key\",\n  searchIn: \"request_headers\",\n  limit: 100\n)\n```\n\n**Simulated response:**\n\n```json\n{\n  \"count\": 6,\n  \"matches\": [\n    {\n      \"id\": \"req_001\",\n      \"method\": \"POST\",\n      \"url\": \"https://api.yourapp.com/v2/user/profile\",\n      \"statusCode\": 200,\n      \"timestamp\": \"2026-03-17T10:14:02Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 512,\n      \"matchContext\": \"Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...\"\n    },\n    {\n      \"id\": \"req_002\",\n      \"method\": \"GET\",\n      \"url\": \"https://api.yourapp.com/v2/feed\",\n      \"statusCode\": 200,\n      \"timestamp\": \"2026-03-17T10:14:05Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 1024,\n      \"matchContext\": \"Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...\"\n    },\n    {\n      \"id\": \"req_003\",\n      \"method\": \"POST\",\n      \"url\": \"https://analytics.thirdparty-tracker.io/collect\",\n      \"statusCode\": 204,\n      \"timestamp\": \"2026-03-17T10:14:07Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 256,\n      \"matchContext\": \"Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...\"\n    },\n    {\n      \"id\": \"req_004\",\n      \"method\": \"GET\",\n      \"url\": \"https://logs.datadogservice.net/v1/input\",\n      \"statusCode\": 200,\n      \"timestamp\": \"2026-03-17T10:14:09Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 128,\n      \"matchContext\": \"Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...\"\n    },\n    {\n      \"id\": \"req_005\",\n      \"method\": \"POST\",\n      \"url\": \"https://api.yourapp.com/v2/messages\",\n      \"statusCode\": 201,\n      \"timestamp\": \"2026-03-17T10:14:11Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 320,\n      \"matchContext\": \"Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...\"\n    },\n    {\n      \"id\": \"req_006\",\n      \"method\": \"POST\",\n      \"url\": \"https://telemetry.unknown-cdn.xyz/ping\",\n      \"statusCode\": 200,\n      \"timestamp\": \"2026-03-17T10:14:14Z\",\n      \"contentType\": \"text/plain\",\n      \"bodySize\": 64,\n      \"matchContext\": \"Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...\"\n    }\n  ]\n}\n```\n\n---\n\n### Step 2 \u00e2\u20ac\u201d Get full request details for the suspicious requests\n\nThree of the six matches go to domains that are not your app's own API (`api.yourapp.com`). I pull the full request details for each of the suspicious ones to confirm what headers and body are being sent.\n\n**Tool call 1:**\n\n```\nget_request_detail(id: \"req_003\")\n```\n\n**Simulated response:**\n\n```json\n{\n  \"id\": \"req_003\",\n  \"method\": \"POST\",\n  \"url\": \"https://analytics.thirdparty-tracker.io/collect\",\n  \"timestamp\": \"2026-03-17T10:14:07Z\",\n  \"headers\": {\n    \"Authorization\": \"Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyXzEyMyIsImVtYWlsIjoidXNlckBleGFtcGxlLmNvbSIsImlhdCI6MTc0MjIxMDAwMH0.signature\",\n    \"Content-Type\": \"application/json\",\n    \"User-Agent\": \"YourApp/3.1.0 (iOS 17.4)\"\n  },\n  \"body\": \"{\\\"event\\\":\\\"page_view\\\",\\\"page\\\":\\\"/home\\\",\\\"userId\\\":\\\"user_123\\\"}\",\n  \"contentType\": \"application/json\",\n  \"bodySize\": 256,\n  \"isBinary\": false\n}\n```\n\n**Tool call 2:**\n\n```\nget_request_detail(id: \"req_004\")\n```\n\n**Simulated response:**\n\n```json\n{\n  \"id\": \"req_004\",\n  \"method\": \"GET\",\n  \"url\": \"https://logs.datadogservice.net/v1/input\",\n  \"timestamp\": \"2026-03-17T10:14:09Z\",\n  \"headers\": {\n    \"Authorization\": \"Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyXzEyMyIsImVtYWlsIjoidXNlckBleGFtcGxlLmNvbSIsImlhdCI6MTc0MjIxMDAwMH0.signature\",\n    \"Content-Type\": \"application/json\",\n    \"User-Agent\": \"YourApp/3.1.0 (iOS 17.4)\"\n  },\n  \"body\": \"\",\n  \"contentType\": \"application/json\",\n  \"bodySize\": 128,\n  \"isBinary\": false\n}\n```\n\n**Tool call 3:**\n\n```\nget_request_detail(id: \"req_006\")\n```\n\n**Simulated response:**\n\n```json\n{\n  \"id\": \"req_006\",\n  \"method\": \"POST\",\n  \"url\": \"https://telemetry.unknown-cdn.xyz/ping\",\n  \"timestamp\": \"2026-03-17T10:14:14Z\",\n  \"headers\": {\n    \"Authorization\": \"Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyXzEyMyIsImVtYWlsIjoidXNlckBleGFtcGxlLmNvbSIsImlhdCI6MTc0MjIxMDAwMH0.signature\",\n    \"Content-Type\": \"text/plain\",\n    \"User-Agent\": \"YourApp/3.1.0 (iOS 17.4)\"\n  },\n  \"body\": \"ping=1&session=abc123\",\n  \"contentType\": \"text/plain\",\n  \"bodySize\": 64,\n  \"isBinary\": false\n}\n```\n\n---\n\n### Step 3 \u00e2\u20ac\u201d Tell the user what I found\n\n---\n\n**What I would say to the user:**\n\nI found **6 requests** in the captured traffic that include an `Authorization: Bearer` header. Here's the breakdown by domain:\n\n**Your own API (expected):**\n- `api.yourapp.com` \u00e2\u20ac\u201d 3 requests (POST /v2/user/profile, GET /v2/feed, POST /v2/messages)\n\nThese look normal \u00e2\u20ac\u201d your app is authenticating with its own backend.\n\n**Third-party domains receiving your auth token (potentially unexpected):**\n\n| Domain | Request | Notes |\n|---|---|---|\n| `analytics.thirdparty-tracker.io` | POST /collect | Analytics/tracking endpoint. The full user Bearer token is attached. This is likely not intentional \u00e2\u20ac\u201d analytics SDKs typically use their own API keys, not your user's auth token. |\n| `logs.datadogservice.net` | GET /v1/input | Looks like a logging or monitoring service. Worth confirming whether this domain is the real Datadog (`api.datadoghq.com`) \u00e2\u20ac\u201d this one looks slightly off. Sending a user Bearer token here is a red flag. |\n| `telemetry.unknown-cdn.xyz` | POST /ping | This domain is unrecognized and low-information. Sending your user's auth token to an `.xyz` domain with a generic name is suspicious. I'd treat this as a high-priority concern. |\n\nAll three external requests are sending the **same Bearer token** as your own API calls. If that token grants access to user data or actions on your platform, any of these third-party services could potentially use it to impersonate the user.\n\n**Recommended next steps:**\n\n1. For `analytics.thirdparty-tracker.io` and `logs.datadogservice.net`: Check which SDK or library is making these calls. It may be inheriting the app's global HTTP client headers. Strip the `Authorization` header from outbound requests to third-party services at the HTTP client layer.\n2. For `telemetry.unknown-cdn.xyz`: Investigate what code path triggers this. If you don't recognize it, check your third-party dependencies \u00e2\u20ac\u201d it may be coming from an analytics or crash-reporting SDK that's been updated. This one warrants immediate investigation.\n3. If you're unsure which part of the app is generating these calls, I can search the traffic further \u00e2\u20ac\u201d for example filtering by timestamp to correlate them with a specific user action, or searching the request bodies for more context.\n\n---\n\n## Summary of Tool Call Order\n\n1. `search_traffic(pattern: \"Bearer |Authorization|api.?key\", searchIn: \"request_headers\", limit: 100)` \u00e2\u20ac\u201d find all requests with auth headers\n2. `get_request_detail(id: \"req_003\")` \u00e2\u20ac\u201d inspect suspicious request to `analytics.thirdparty-tracker.io`\n3. `get_request_detail(id: \"req_004\")` \u00e2\u20ac\u201d inspect suspicious request to `logs.datadogservice.net`\n4. `get_request_detail(id: \"req_006\")` \u00e2\u20ac\u201d inspect suspicious request to `telemetry.unknown-cdn.xyz`\n"}], "grading": {"eval_name": "eval-3", "configuration": "with_skill", "expectations": [{"text": "Response uses search_traffic (not list_requests) to find auth-related traffic", "passed": true, "evidence": "search_traffic called with pattern 'Bearer |Authorization|api.?key', searchIn: 'request_headers'"}, {"text": "Response uses searchIn: 'request_headers' to target authorization headers", "passed": true, "evidence": "searchIn: 'request_headers' \u2014 from skill's workflow pattern"}, {"text": "Response uses a regex pattern that would match Authorization headers or Bearer tokens", "passed": true, "evidence": "Pattern 'Bearer |Authorization|api.?key' matches both Authorization header name and Bearer keyword"}, {"text": "Response explains how to identify which domains are receiving the auth tokens", "passed": true, "evidence": "Domain table with api.yourapp.com (expected) vs analytics.thirdparty-tracker.io, logs.datadogservice.net, telemetry.unknown-cdn.xyz (suspicious)"}], "summary": {"passed": 4, "failed": 0, "total": 4, "pass_rate": 1.0}}}], "previous_feedback": {}, "previous_outputs": {"android-setup-old-skill": [{"name": "response.md", "type": "text", "content": "# Response: Android Proxy Setup and Traffic Capture\n\n## What I Would Tell the User\n\n---\n\nGreat question \u00e2\u20ac\u201d setting up HTTP Toolkit to intercept traffic from an Android debug build involves a few steps on both your machine and your device. I can walk you through the full setup, but I want to be upfront about one thing first:\n\n**The tools I have available are for inspecting traffic that has already been captured** \u00e2\u20ac\u201d listing requests, searching by URL or body, and reading request/response details. I do not currently have MCP tools for configuring the proxy, setting up Android interception, or launching a capture session. Those steps need to be done manually in the HTTP Toolkit desktop app.\n\nHere is exactly what you need to do:\n\n---\n\n## Step-by-Step Setup\n\n### 1. Install HTTP Toolkit on Your Machine\n\nDownload and install HTTP Toolkit from https://httptoolkit.com. Launch the app.\n\n### 2. Start an Android Interception Session\n\nIn the HTTP Toolkit UI:\n- Click **\"Android Device\"** from the interception options on the home screen.\n- HTTP Toolkit will display your machine's local IP address and the proxy port (typically `8000`).\n\n### 3. Connect Your Android Device\n\n- Enable **Developer Options** on your Android device (Settings > About Phone > tap \"Build Number\" 7 times).\n- Connect the device via USB and ensure **USB debugging** is enabled.\n- HTTP Toolkit can configure the device automatically via ADB. If your device is detected, click **\"Connect via ADB\"** and HTTP Toolkit will:\n  - Push its CA certificate to the device.\n  - Configure the Wi-Fi proxy automatically.\n\nIf automatic setup does not work, do it manually:\n- On your Android device, go to **Settings > Wi-Fi**, long-press your network, select **Modify Network**, set **Proxy** to **Manual**, enter your machine's IP and port `8000`.\n- Install the HTTP Toolkit CA certificate manually: visit `http://httptoolkit.tech/android` from the device browser while the proxy is active, download the cert, and install it under **Settings > Security > Install Certificate**.\n\n### 4. Trust the Certificate for Debug Builds (Network Security Config)\n\nBecause you have the source and it is a debug build, you can make the app trust user-installed CA certificates. In your app's `res/xml/network_security_config.xml`:\n\n```xml\n<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<network-security-config>\n    <debug-overrides>\n        <trust-anchors>\n            <certificates src=\"user\" />\n            <certificates src=\"system\" />\n        </trust-anchors>\n    </debug-overrides>\n</network-security-config>\n```\n\nReference it in your `AndroidManifest.xml`:\n\n```xml\n<application\n    android:networkSecurityConfig=\"@xml/network_security_config\"\n    ...>\n```\n\nRebuild and install the debug APK. This allows your app to trust the HTTP Toolkit certificate without needing root.\n\n### 5. Start Capturing\n\nRun your app on the device. Traffic will start appearing in the HTTP Toolkit desktop UI in real time.\n\n---\n\n## Once Traffic Is Captured \u00e2\u20ac\u201d What I Can Do\n\nOnce HTTP Toolkit is capturing traffic, I can help you analyze it using the available MCP tools. Here is what I would do and in what order:\n\n### Get an Overview\n\nI would call `get_traffic_stats()` to see a high-level summary:\n\n```\nget_traffic_stats()\n```\n\nThis returns total request count, breakdown by HTTP method, status code distribution, average response time, and top domains \u00e2\u20ac\u201d useful for a quick sanity check that traffic is flowing.\n\n### List All Captured Requests\n\n```\nlist_requests(limit: 50)\n```\n\nThis gives you an array of `{ id, method, url, status, timestamp, content-type, body_size }` for the most recent 50 requests. I can filter by method or URL pattern, for example to see only POST requests:\n\n```\nlist_requests(method: \"POST\", limit: 50)\n```\n\nOr to focus on a specific API host:\n\n```\nlist_requests(urlPattern: \"api\\\\.yourapp\\\\.com\", limit: 50)\n```\n\n### Inspect a Specific Request\n\nOnce I have an `id` from the list (e.g., `\"req_42\"`), I would call both detail tools:\n\n```\nget_request_detail(\"req_42\")\n// Returns: method, URL, request headers, request body, timing\n\nget_response_detail(\"req_42\")\n// Returns: status code, response headers, response body, timing\n```\n\n### Search Across All Traffic\n\nIf you want to find something specific \u00e2\u20ac\u201d like an auth token, a particular field in a JSON body, or a specific endpoint \u00e2\u20ac\u201d I would use:\n\n```\nsearch_traffic(pattern: \"access_token\", searchIn: \"response_body\")\n```\n\nor\n\n```\nsearch_traffic(pattern: \"/auth/login\", searchIn: \"url\")\n```\n\n---\n\n## Summary of Tool Calls I Would Make (in Order)\n\n| Step | Tool | Purpose |\n|------|------|---------|\n| 1 | `get_traffic_stats()` | Confirm traffic is being captured; get totals and top domains |\n| 2 | `list_requests(limit: 50)` | See all recent requests |\n| 3 | `list_requests(urlPattern: \"...\", method: \"POST\")` | Narrow to relevant endpoints |\n| 4 | `get_request_detail(id)` | Read full request headers and body |\n| 5 | `get_response_detail(id)` | Read full response headers and body |\n| 6 | `search_traffic(pattern: \"...\", searchIn: \"all\")` | Find specific tokens, fields, or patterns across all traffic |\n\n---\n\n## What I Cannot Do (Scope Limitation)\n\nThe HTTP Toolkit MCP tools I have access to are read-only inspection tools. I cannot:\n- Start or stop a capture session via MCP.\n- Configure the proxy settings programmatically.\n- Push certificates to your device.\n- Modify interception rules.\n\nAll of those actions must be performed in the HTTP Toolkit desktop app directly. Once the capture is running, I can take over and help you analyze everything.\n\n---\n\nLet me know when you have traffic flowing and I will start digging in.\n"}], "android-setup-with-skill": [{"name": "response.md", "type": "text", "content": "# Android App Traffic Capture \u00e2\u20ac\u201d Full Response\n\n## What I Would Say and Do (Step by Step)\n\n---\n\n### Step 1: Start the proxy\n\nThe first thing I would do is call the `start_proxy` MCP tool to start the local intercepting proxy:\n\n**MCP Tool Call:**\n```\nstart_proxy()\n```\n\nExpected response:\n```json\n{\n  \"proxyUrl\": \"http://127.0.0.1:8080\",\n  \"caCertPath\": \"/Users/yemishin/.http-toolkit-mcp/ca.pem\"\n}\n```\n\n---\n\n### Step 2: Tell the user what was started and what to do next\n\n> The proxy is running at **http://127.0.0.1:8080** and a CA certificate has been generated at:\n> `/Users/yemishin/.http-toolkit-mcp/ca.pem`\n>\n> Since you're on Android with a debug build and have the source, here's what you need to do:\n>\n> **A. Configure your Android device to use the proxy**\n>\n> 1. Connect your Android device to the same Wi-Fi network as your machine.\n> 2. Long-press your Wi-Fi network \u00e2\u2020\u2019 Modify network \u00e2\u2020\u2019 Advanced options.\n> 3. Set **Proxy** to **Manual**.\n> 4. Set **Proxy hostname** to your machine's local IP address (e.g., `192.168.1.10`).\n> 5. Set **Proxy port** to `8080`.\n> 6. Save.\n>\n> **B. Install the CA certificate on your device**\n>\n> Because your app targets API 24+ (which is almost certainly the case for a modern debug build), Android no longer trusts user-installed certificates by default for app traffic. You need to do **both** of the following:\n>\n> 1. **Install the cert on the device:**\n>    - Transfer `ca.pem` to your device (ADB push, email, etc.).\n>    - Go to **Settings \u00e2\u2020\u2019 Security \u00e2\u2020\u2019 Install certificate** (exact path varies by Android version; look for \"Install from storage\" or \"Install a certificate\").\n>    - Install it as a **CA certificate** or **Wi-Fi certificate** \u00e2\u20ac\u201d not VPN or apps.\n>\n> 2. **Add a Network Security Config to your app source** (required for API 24+):\n>\n>    Create or edit `res/xml/network_security_config.xml`:\n>    ```xml\n>    <?xml version=\"1.0\" encoding=\"utf-8\"?>\n>    <network-security-config>\n>        <debug-overrides>\n>            <trust-anchors>\n>                <certificates src=\"user\" />\n>            </trust-anchors>\n>        </debug-overrides>\n>    </network-security-config>\n>    ```\n>\n>    Then reference it in your `AndroidManifest.xml`:\n>    ```xml\n>    <application\n>        android:networkSecurityConfig=\"@xml/network_security_config\"\n>        ...>\n>    ```\n>\n>    Because you're using `<debug-overrides>`, this only applies to debug builds \u00e2\u20ac\u201d your release build won't be affected. Rebuild and reinstall the app after making this change.\n>\n> **Why both steps are needed:** The device cert install makes Android trust the CA at the OS level for browser traffic. The network security config is what tells your *app* (which enforces its own trust rules on API 24+) to also trust user-installed CAs when running as a debug build.\n\n---\n\n### Step 3: Prompt the user to trigger traffic\n\n> Once you have:\n> - The proxy set on your device\n> - The cert installed\n> - The app rebuilt with the network security config and reinstalled\n>\n> Go ahead and use your app \u00e2\u20ac\u201d tap through the flows you want to inspect. Then let me know and I'll pull up what was captured.\n\n---\n\n### Step 4: After the user confirms they've triggered traffic \u00e2\u20ac\u201d query the results\n\nOnce the user says they've used the app, I would call:\n\n**MCP Tool Call:**\n```\nlist_requests(limit: 50)\n```\n\nThis returns the 50 most recent captured requests (newest first), with fields: `id`, `method`, `url`, `statusCode`, `timestamp`, `contentType`, `bodySize`.\n\nI would present the results to the user and ask if they want to:\n- Filter to a specific domain or endpoint using `urlPattern`\n- Drill into the full details of a specific request or response using `get_request_detail(id)` / `get_response_detail(id)`\n- Search for something specific (e.g., a token, parameter, or error string) using `search_traffic(pattern)`\n- Get an overview of all traffic using `get_traffic_stats()`\n\n---\n\n### Step 5 (example drill-down): Get full request + response detail\n\nIf the user spots an interesting request (say, id `abc123`):\n\n**MCP Tool Calls:**\n```\nget_request_detail(\"abc123\")\nget_response_detail(\"abc123\")\n```\n\nThis gives full headers, body, timing (`duration` in ms), and status for that specific exchange.\n\n---\n\n### Summary of MCP tools called, in order\n\n| Order | Tool | Arguments | Purpose |\n|-------|------|-----------|---------|\n| 1 | `start_proxy` | _(none)_ | Start the intercepting proxy, get URL and CA cert path |\n| 2 | `list_requests` | `limit: 50` | See all captured traffic after user triggers app flows |\n| 3 | `get_request_detail` | `id: <id>` | Inspect full request headers and body for a specific call |\n| 4 | `get_response_detail` | `id: <id>` | Inspect full response headers, body, and timing |\n\nOptional tools depending on what the user wants to explore:\n- `search_traffic(pattern, searchIn)` \u00e2\u20ac\u201d hunt for a specific token, param, or string\n- `get_traffic_stats()` \u00e2\u20ac\u201d aggregate overview (top domains, avg response time, status code breakdown)\n- `clear_traffic()` \u00e2\u20ac\u201d wipe captured entries to start a clean session\n- `stop_proxy()` \u00e2\u20ac\u201d shut down the proxy when done\n"}], "eval-1-old_skill-run-1": [{"name": "response.md", "type": "text", "content": "# Response: Android Proxy Setup and Traffic Capture\n\n## What I Would Tell the User\n\n---\n\nGreat question \u00e2\u20ac\u201d setting up HTTP Toolkit to intercept traffic from an Android debug build involves a few steps on both your machine and your device. I can walk you through the full setup, but I want to be upfront about one thing first:\n\n**The tools I have available are for inspecting traffic that has already been captured** \u00e2\u20ac\u201d listing requests, searching by URL or body, and reading request/response details. I do not currently have MCP tools for configuring the proxy, setting up Android interception, or launching a capture session. Those steps need to be done manually in the HTTP Toolkit desktop app.\n\nHere is exactly what you need to do:\n\n---\n\n## Step-by-Step Setup\n\n### 1. Install HTTP Toolkit on Your Machine\n\nDownload and install HTTP Toolkit from https://httptoolkit.com. Launch the app.\n\n### 2. Start an Android Interception Session\n\nIn the HTTP Toolkit UI:\n- Click **\"Android Device\"** from the interception options on the home screen.\n- HTTP Toolkit will display your machine's local IP address and the proxy port (typically `8000`).\n\n### 3. Connect Your Android Device\n\n- Enable **Developer Options** on your Android device (Settings > About Phone > tap \"Build Number\" 7 times).\n- Connect the device via USB and ensure **USB debugging** is enabled.\n- HTTP Toolkit can configure the device automatically via ADB. If your device is detected, click **\"Connect via ADB\"** and HTTP Toolkit will:\n  - Push its CA certificate to the device.\n  - Configure the Wi-Fi proxy automatically.\n\nIf automatic setup does not work, do it manually:\n- On your Android device, go to **Settings > Wi-Fi**, long-press your network, select **Modify Network**, set **Proxy** to **Manual**, enter your machine's IP and port `8000`.\n- Install the HTTP Toolkit CA certificate manually: visit `http://httptoolkit.tech/android` from the device browser while the proxy is active, download the cert, and install it under **Settings > Security > Install Certificate**.\n\n### 4. Trust the Certificate for Debug Builds (Network Security Config)\n\nBecause you have the source and it is a debug build, you can make the app trust user-installed CA certificates. In your app's `res/xml/network_security_config.xml`:\n\n```xml\n<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<network-security-config>\n    <debug-overrides>\n        <trust-anchors>\n            <certificates src=\"user\" />\n            <certificates src=\"system\" />\n        </trust-anchors>\n    </debug-overrides>\n</network-security-config>\n```\n\nReference it in your `AndroidManifest.xml`:\n\n```xml\n<application\n    android:networkSecurityConfig=\"@xml/network_security_config\"\n    ...>\n```\n\nRebuild and install the debug APK. This allows your app to trust the HTTP Toolkit certificate without needing root.\n\n### 5. Start Capturing\n\nRun your app on the device. Traffic will start appearing in the HTTP Toolkit desktop UI in real time.\n\n---\n\n## Once Traffic Is Captured \u00e2\u20ac\u201d What I Can Do\n\nOnce HTTP Toolkit is capturing traffic, I can help you analyze it using the available MCP tools. Here is what I would do and in what order:\n\n### Get an Overview\n\nI would call `get_traffic_stats()` to see a high-level summary:\n\n```\nget_traffic_stats()\n```\n\nThis returns total request count, breakdown by HTTP method, status code distribution, average response time, and top domains \u00e2\u20ac\u201d useful for a quick sanity check that traffic is flowing.\n\n### List All Captured Requests\n\n```\nlist_requests(limit: 50)\n```\n\nThis gives you an array of `{ id, method, url, status, timestamp, content-type, body_size }` for the most recent 50 requests. I can filter by method or URL pattern, for example to see only POST requests:\n\n```\nlist_requests(method: \"POST\", limit: 50)\n```\n\nOr to focus on a specific API host:\n\n```\nlist_requests(urlPattern: \"api\\\\.yourapp\\\\.com\", limit: 50)\n```\n\n### Inspect a Specific Request\n\nOnce I have an `id` from the list (e.g., `\"req_42\"`), I would call both detail tools:\n\n```\nget_request_detail(\"req_42\")\n// Returns: method, URL, request headers, request body, timing\n\nget_response_detail(\"req_42\")\n// Returns: status code, response headers, response body, timing\n```\n\n### Search Across All Traffic\n\nIf you want to find something specific \u00e2\u20ac\u201d like an auth token, a particular field in a JSON body, or a specific endpoint \u00e2\u20ac\u201d I would use:\n\n```\nsearch_traffic(pattern: \"access_token\", searchIn: \"response_body\")\n```\n\nor\n\n```\nsearch_traffic(pattern: \"/auth/login\", searchIn: \"url\")\n```\n\n---\n\n## Summary of Tool Calls I Would Make (in Order)\n\n| Step | Tool | Purpose |\n|------|------|---------|\n| 1 | `get_traffic_stats()` | Confirm traffic is being captured; get totals and top domains |\n| 2 | `list_requests(limit: 50)` | See all recent requests |\n| 3 | `list_requests(urlPattern: \"...\", method: \"POST\")` | Narrow to relevant endpoints |\n| 4 | `get_request_detail(id)` | Read full request headers and body |\n| 5 | `get_response_detail(id)` | Read full response headers and body |\n| 6 | `search_traffic(pattern: \"...\", searchIn: \"all\")` | Find specific tokens, fields, or patterns across all traffic |\n\n---\n\n## What I Cannot Do (Scope Limitation)\n\nThe HTTP Toolkit MCP tools I have access to are read-only inspection tools. I cannot:\n- Start or stop a capture session via MCP.\n- Configure the proxy settings programmatically.\n- Push certificates to your device.\n- Modify interception rules.\n\nAll of those actions must be performed in the HTTP Toolkit desktop app directly. Once the capture is running, I can take over and help you analyze everything.\n\n---\n\nLet me know when you have traffic flowing and I will start digging in.\n"}], "eval-1-with_skill-run-1": [{"name": "response.md", "type": "text", "content": "# Android App Traffic Capture \u00e2\u20ac\u201d Full Response\n\n## What I Would Say and Do (Step by Step)\n\n---\n\n### Step 1: Start the proxy\n\nThe first thing I would do is call the `start_proxy` MCP tool to start the local intercepting proxy:\n\n**MCP Tool Call:**\n```\nstart_proxy()\n```\n\nExpected response:\n```json\n{\n  \"proxyUrl\": \"http://127.0.0.1:8080\",\n  \"caCertPath\": \"/Users/yemishin/.http-toolkit-mcp/ca.pem\"\n}\n```\n\n---\n\n### Step 2: Tell the user what was started and what to do next\n\n> The proxy is running at **http://127.0.0.1:8080** and a CA certificate has been generated at:\n> `/Users/yemishin/.http-toolkit-mcp/ca.pem`\n>\n> Since you're on Android with a debug build and have the source, here's what you need to do:\n>\n> **A. Configure your Android device to use the proxy**\n>\n> 1. Connect your Android device to the same Wi-Fi network as your machine.\n> 2. Long-press your Wi-Fi network \u00e2\u2020\u2019 Modify network \u00e2\u2020\u2019 Advanced options.\n> 3. Set **Proxy** to **Manual**.\n> 4. Set **Proxy hostname** to your machine's local IP address (e.g., `192.168.1.10`).\n> 5. Set **Proxy port** to `8080`.\n> 6. Save.\n>\n> **B. Install the CA certificate on your device**\n>\n> Because your app targets API 24+ (which is almost certainly the case for a modern debug build), Android no longer trusts user-installed certificates by default for app traffic. You need to do **both** of the following:\n>\n> 1. **Install the cert on the device:**\n>    - Transfer `ca.pem` to your device (ADB push, email, etc.).\n>    - Go to **Settings \u00e2\u2020\u2019 Security \u00e2\u2020\u2019 Install certificate** (exact path varies by Android version; look for \"Install from storage\" or \"Install a certificate\").\n>    - Install it as a **CA certificate** or **Wi-Fi certificate** \u00e2\u20ac\u201d not VPN or apps.\n>\n> 2. **Add a Network Security Config to your app source** (required for API 24+):\n>\n>    Create or edit `res/xml/network_security_config.xml`:\n>    ```xml\n>    <?xml version=\"1.0\" encoding=\"utf-8\"?>\n>    <network-security-config>\n>        <debug-overrides>\n>            <trust-anchors>\n>                <certificates src=\"user\" />\n>            </trust-anchors>\n>        </debug-overrides>\n>    </network-security-config>\n>    ```\n>\n>    Then reference it in your `AndroidManifest.xml`:\n>    ```xml\n>    <application\n>        android:networkSecurityConfig=\"@xml/network_security_config\"\n>        ...>\n>    ```\n>\n>    Because you're using `<debug-overrides>`, this only applies to debug builds \u00e2\u20ac\u201d your release build won't be affected. Rebuild and reinstall the app after making this change.\n>\n> **Why both steps are needed:** The device cert install makes Android trust the CA at the OS level for browser traffic. The network security config is what tells your *app* (which enforces its own trust rules on API 24+) to also trust user-installed CAs when running as a debug build.\n\n---\n\n### Step 3: Prompt the user to trigger traffic\n\n> Once you have:\n> - The proxy set on your device\n> - The cert installed\n> - The app rebuilt with the network security config and reinstalled\n>\n> Go ahead and use your app \u00e2\u20ac\u201d tap through the flows you want to inspect. Then let me know and I'll pull up what was captured.\n\n---\n\n### Step 4: After the user confirms they've triggered traffic \u00e2\u20ac\u201d query the results\n\nOnce the user says they've used the app, I would call:\n\n**MCP Tool Call:**\n```\nlist_requests(limit: 50)\n```\n\nThis returns the 50 most recent captured requests (newest first), with fields: `id`, `method`, `url`, `statusCode`, `timestamp`, `contentType`, `bodySize`.\n\nI would present the results to the user and ask if they want to:\n- Filter to a specific domain or endpoint using `urlPattern`\n- Drill into the full details of a specific request or response using `get_request_detail(id)` / `get_response_detail(id)`\n- Search for something specific (e.g., a token, parameter, or error string) using `search_traffic(pattern)`\n- Get an overview of all traffic using `get_traffic_stats()`\n\n---\n\n### Step 5 (example drill-down): Get full request + response detail\n\nIf the user spots an interesting request (say, id `abc123`):\n\n**MCP Tool Calls:**\n```\nget_request_detail(\"abc123\")\nget_response_detail(\"abc123\")\n```\n\nThis gives full headers, body, timing (`duration` in ms), and status for that specific exchange.\n\n---\n\n### Summary of MCP tools called, in order\n\n| Order | Tool | Arguments | Purpose |\n|-------|------|-----------|---------|\n| 1 | `start_proxy` | _(none)_ | Start the intercepting proxy, get URL and CA cert path |\n| 2 | `list_requests` | `limit: 50` | See all captured traffic after user triggers app flows |\n| 3 | `get_request_detail` | `id: <id>` | Inspect full request headers and body for a specific call |\n| 4 | `get_response_detail` | `id: <id>` | Inspect full response headers, body, and timing |\n\nOptional tools depending on what the user wants to explore:\n- `search_traffic(pattern, searchIn)` \u00e2\u20ac\u201d hunt for a specific token, param, or string\n- `get_traffic_stats()` \u00e2\u20ac\u201d aggregate overview (top domains, avg response time, status code breakdown)\n- `clear_traffic()` \u00e2\u20ac\u201d wipe captured entries to start a clean session\n- `stop_proxy()` \u00e2\u20ac\u201d shut down the proxy when done\n"}], "eval-2-old_skill-run-1": [{"name": "response.md", "type": "text", "content": "# Response: Finding 401 Errors and Showing Failed Request Bodies\n\n## What I Would Do and Say\n\n---\n\n### Step 1: List all 401 requests\n\nI would start by calling `list_requests` filtered to status code 401 to get an overview of all the failed requests.\n\n**MCP tool call:**\n```\nlist_requests(\n  statusCode: 401,\n  limit: 50\n)\n```\n\n**What I would tell the user:**\n\n\"Let me pull up all the 401 responses from your captured traffic.\"\n\n**Example response from the tool (hypothetical):**\n```json\n[\n  { \"id\": \"req_101\", \"method\": \"POST\", \"url\": \"https://api.myapp.com/v1/users/me\", \"status\": 401, \"timestamp\": \"2026-03-17T10:03:12Z\", \"content-type\": \"application/json\", \"body_size\": 312 },\n  { \"id\": \"req_108\", \"method\": \"GET\",  \"url\": \"https://api.myapp.com/v1/feed\",    \"status\": 401, \"timestamp\": \"2026-03-17T10:04:05Z\", \"content-type\": \"application/json\", \"body_size\": 0 },\n  { \"id\": \"req_115\", \"method\": \"POST\", \"url\": \"https://api.myapp.com/v1/auth/refresh\", \"status\": 401, \"timestamp\": \"2026-03-17T10:05:31Z\", \"content-type\": \"application/json\", \"body_size\": 128 },\n  ...\n]\n```\n\n---\n\n### Step 2: Fetch the request body for each 401\n\nFor every request in the list that has a non-zero `body_size` (i.e., it actually sent a body), I would call `get_request_detail` to retrieve the full request including headers and body. Requests with `body_size: 0` (like plain GET requests) would be noted but skipped for body inspection since they have nothing to show.\n\n**MCP tool calls (one per relevant request):**\n\n```\nget_request_detail(\"req_101\")\nget_request_detail(\"req_115\")\n```\n\n**Example tool responses (hypothetical):**\n\n`req_101`:\n```json\n{\n  \"method\": \"POST\",\n  \"url\": \"https://api.myapp.com/v1/users/me\",\n  \"headers\": {\n    \"Authorization\": \"Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...\",\n    \"Content-Type\": \"application/json\"\n  },\n  \"body\": \"{\\\"displayName\\\": \\\"Jane Doe\\\", \\\"email\\\": \\\"jane@example.com\\\"}\",\n  \"timing\": { \"start\": \"2026-03-17T10:03:12Z\", \"duration_ms\": 87 }\n}\n```\n\n`req_115`:\n```json\n{\n  \"method\": \"POST\",\n  \"url\": \"https://api.myapp.com/v1/auth/refresh\",\n  \"headers\": {\n    \"Content-Type\": \"application/json\"\n  },\n  \"body\": \"{\\\"refresh_token\\\": \\\"dGhpcyBpcyBhIHRlc3Q...\\\"}\",\n  \"timing\": { \"start\": \"2026-03-17T10:05:31Z\", \"duration_ms\": 43 }\n}\n```\n\n---\n\n### Step 3: Present findings to the user\n\nAfter collecting all the data, I would summarize like this:\n\n---\n\n\"I found **N** requests that came back with a 401 Unauthorized. Here's a breakdown of the failed request bodies:\n\n**req_101 \u00e2\u20ac\u201d POST https://api.myapp.com/v1/users/me**\n- The request included a Bearer token in the `Authorization` header, but the server rejected it (likely expired or revoked).\n- Request body:\n  ```json\n  { \"displayName\": \"Jane Doe\", \"email\": \"jane@example.com\" }\n  ```\n\n**req_108 \u00e2\u20ac\u201d GET https://api.myapp.com/v1/feed**\n- No request body (GET request). The 401 here is likely a missing or invalid token in the headers.\n\n**req_115 \u00e2\u20ac\u201d POST https://api.myapp.com/v1/auth/refresh**\n- This one is notable: the app tried to refresh its token but got a 401 back, which means the refresh token itself is invalid or expired.\n- Request body:\n  ```json\n  { \"refresh_token\": \"dGhpcyBpcyBhIHRlc3Q...\" }\n  ```\n\n**Pattern observed:** The 401s appear to be clustered around an expired or invalid token. The refresh attempt at `req_115` also failing suggests the session may be fully expired. You may want to check whether the token lifecycle or storage is working correctly in the app.\"\n\n---\n\n## Summary of Tool Call Order\n\n| Step | Tool | Arguments | Purpose |\n|------|------|-----------|---------|\n| 1 | `list_requests` | `statusCode: 401, limit: 50` | Get all 401 responses |\n| 2 | `get_request_detail` | `id` for each request with a body | Retrieve full request bodies |\n\nNo calls to `get_response_detail`, `search_traffic`, or `get_traffic_stats` are needed for this specific task \u00e2\u20ac\u201d the user asked specifically about the **failed request bodies**, so fetching request details is sufficient.\n"}], "eval-2-with_skill-run-1": [{"name": "response.md", "type": "text", "content": "# Response: Finding 401 Errors and Their Request Bodies\n\n## What I Would Say and Do\n\nSince the proxy has already been running and the user has already browsed around the app, we are in **Phase 2** of the workflow \u00e2\u20ac\u201d no need to start the proxy or walk through setup. The user wants to:\n\n1. Find all 401 responses\n2. See what the failed request bodies looked like\n\nHere is exactly what I would say and do, step by step.\n\n---\n\n## Step 1: List all 401 requests\n\nI would call:\n\n```\nlist_requests(statusCode: 401)\n```\n\n**Arguments:**\n```json\n{\n  \"statusCode\": 401\n}\n```\n\n**What I would say to the user:**\n\n> Let me pull up all the requests that got a 401 response.\n\nAfter receiving the result (hypothetical example):\n\n```json\n{\n  \"count\": 4,\n  \"requests\": [\n    { \"id\": \"req_001\", \"method\": \"POST\", \"url\": \"https://api.example.com/v1/auth/token\", \"statusCode\": 401, \"timestamp\": \"2026-03-17T10:12:03Z\", \"contentType\": \"application/json\", \"bodySize\": 312 },\n    { \"id\": \"req_002\", \"method\": \"POST\", \"url\": \"https://api.example.com/v1/user/profile\", \"statusCode\": 401, \"timestamp\": \"2026-03-17T10:13:45Z\", \"contentType\": \"application/json\", \"bodySize\": 88 },\n    { \"id\": \"req_003\", \"method\": \"GET\",  \"url\": \"https://api.example.com/v1/documents/list\", \"statusCode\": 401, \"timestamp\": \"2026-03-17T10:14:10Z\", \"contentType\": null, \"bodySize\": 0 },\n    { \"id\": \"req_004\", \"method\": \"POST\", \"url\": \"https://api.example.com/v1/messages/send\", \"statusCode\": 401, \"timestamp\": \"2026-03-17T10:15:22Z\", \"contentType\": \"application/json\", \"bodySize\": 204 }\n  ]\n}\n```\n\n> Found **4 requests** that returned 401. Here's a summary:\n>\n> | # | Method | URL | Timestamp |\n> |---|--------|-----|-----------|\n> | 1 | POST | /v1/auth/token | 10:12:03 |\n> | 2 | POST | /v1/user/profile | 10:13:45 |\n> | 3 | GET | /v1/documents/list | 10:14:10 |\n> | 4 | POST | /v1/messages/send | 10:15:22 |\n>\n> Now let me fetch the request bodies for each of these.\n\n---\n\n## Step 2: Fetch request details for each 401\n\nFor each request with a non-zero `bodySize` (requests with bodies), I would call `get_request_detail`. The GET request (req_003) has `bodySize: 0` so it has no body \u00e2\u20ac\u201d I would note that and skip fetching its body, but I would still retrieve its details to show headers.\n\nI would make these calls (the first three in parallel since they are independent):\n\n### Call A\n```\nget_request_detail(id: \"req_001\")\n```\n**Arguments:** `{ \"id\": \"req_001\" }`\n\n### Call B\n```\nget_request_detail(id: \"req_002\")\n```\n**Arguments:** `{ \"id\": \"req_002\" }`\n\n### Call C\n```\nget_request_detail(id: \"req_003\")\n```\n**Arguments:** `{ \"id\": \"req_003\" }`\n\n### Call D\n```\nget_request_detail(id: \"req_004\")\n```\n**Arguments:** `{ \"id\": \"req_004\" }`\n\n**What I would say to the user:**\n\n> Fetching the request details for all 4. For the GET request to `/v1/documents/list`, there won't be a body (GET requests don't carry one), but I'll grab its headers too.\n\nAfter receiving results, I would present them like this:\n\n---\n\n> ### 401 #1 \u00e2\u20ac\u201d POST /v1/auth/token\n> **Request body:**\n> ```json\n> {\n>   \"grant_type\": \"password\",\n>   \"username\": \"user@example.com\",\n>   \"password\": \"hunter2\",\n>   \"client_id\": \"mobile-app-prod\"\n> }\n> ```\n>\n> ### 401 #2 \u00e2\u20ac\u201d POST /v1/user/profile\n> **Request body:**\n> ```json\n> {\n>   \"userId\": \"u_8821\"\n> }\n> ```\n>\n> ### 401 #3 \u00e2\u20ac\u201d GET /v1/documents/list\n> **Request body:** None (GET request \u00e2\u20ac\u201d no body)\n> Notable headers: `Authorization: Bearer eyJhbGci...` (token present but rejected)\n>\n> ### 401 #4 \u00e2\u20ac\u201d POST /v1/messages/send\n> **Request body:**\n> ```json\n> {\n>   \"to\": \"contact@example.com\",\n>   \"subject\": \"Hello\",\n>   \"body\": \"This is a test message.\"\n> }\n> ```\n\n---\n\n## Step 3: Share observations and offer next steps\n\n> Here's what stands out:\n>\n> - **Request #1** is hitting the token endpoint with plaintext credentials. The 401 suggests the credentials are being rejected \u00e2\u20ac\u201d possibly wrong password, revoked account, or the client_id is unrecognized.\n> - **Requests #2, #3, and #4** all appear to be authenticated API calls. If these came *after* the failed login, they may be running with an expired or missing token.\n> - **Request #3** shows an Authorization header is being sent, but the server is still returning 401 \u00e2\u20ac\u201d the token may be expired or malformed.\n>\n> Would you like me to:\n> - Pull the **response bodies** for these 401s to see the server's error messages?\n> - Check whether there's a successful auth request nearby (e.g., a 200 on `/v1/auth/token`) and compare the two?\n> - Search all traffic for how the Authorization header is being set across requests?\n\n---\n\n## Summary of MCP Tool Calls Made\n\n| Order | Tool | Key Arguments |\n|-------|------|---------------|\n| 1 | `list_requests` | `statusCode: 401` |\n| 2 (parallel) | `get_request_detail` | `id: \"req_001\"` |\n| 2 (parallel) | `get_request_detail` | `id: \"req_002\"` |\n| 2 (parallel) | `get_request_detail` | `id: \"req_003\"` |\n| 2 (parallel) | `get_request_detail` | `id: \"req_004\"` |\n\nNo proxy start/stop was needed since the proxy was already running and traffic had already been captured.\n"}], "find-401-errors-old-skill": [{"name": "response.md", "type": "text", "content": "# Response: Finding 401 Errors and Showing Failed Request Bodies\n\n## What I Would Do and Say\n\n---\n\n### Step 1: List all 401 requests\n\nI would start by calling `list_requests` filtered to status code 401 to get an overview of all the failed requests.\n\n**MCP tool call:**\n```\nlist_requests(\n  statusCode: 401,\n  limit: 50\n)\n```\n\n**What I would tell the user:**\n\n\"Let me pull up all the 401 responses from your captured traffic.\"\n\n**Example response from the tool (hypothetical):**\n```json\n[\n  { \"id\": \"req_101\", \"method\": \"POST\", \"url\": \"https://api.myapp.com/v1/users/me\", \"status\": 401, \"timestamp\": \"2026-03-17T10:03:12Z\", \"content-type\": \"application/json\", \"body_size\": 312 },\n  { \"id\": \"req_108\", \"method\": \"GET\",  \"url\": \"https://api.myapp.com/v1/feed\",    \"status\": 401, \"timestamp\": \"2026-03-17T10:04:05Z\", \"content-type\": \"application/json\", \"body_size\": 0 },\n  { \"id\": \"req_115\", \"method\": \"POST\", \"url\": \"https://api.myapp.com/v1/auth/refresh\", \"status\": 401, \"timestamp\": \"2026-03-17T10:05:31Z\", \"content-type\": \"application/json\", \"body_size\": 128 },\n  ...\n]\n```\n\n---\n\n### Step 2: Fetch the request body for each 401\n\nFor every request in the list that has a non-zero `body_size` (i.e., it actually sent a body), I would call `get_request_detail` to retrieve the full request including headers and body. Requests with `body_size: 0` (like plain GET requests) would be noted but skipped for body inspection since they have nothing to show.\n\n**MCP tool calls (one per relevant request):**\n\n```\nget_request_detail(\"req_101\")\nget_request_detail(\"req_115\")\n```\n\n**Example tool responses (hypothetical):**\n\n`req_101`:\n```json\n{\n  \"method\": \"POST\",\n  \"url\": \"https://api.myapp.com/v1/users/me\",\n  \"headers\": {\n    \"Authorization\": \"Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...\",\n    \"Content-Type\": \"application/json\"\n  },\n  \"body\": \"{\\\"displayName\\\": \\\"Jane Doe\\\", \\\"email\\\": \\\"jane@example.com\\\"}\",\n  \"timing\": { \"start\": \"2026-03-17T10:03:12Z\", \"duration_ms\": 87 }\n}\n```\n\n`req_115`:\n```json\n{\n  \"method\": \"POST\",\n  \"url\": \"https://api.myapp.com/v1/auth/refresh\",\n  \"headers\": {\n    \"Content-Type\": \"application/json\"\n  },\n  \"body\": \"{\\\"refresh_token\\\": \\\"dGhpcyBpcyBhIHRlc3Q...\\\"}\",\n  \"timing\": { \"start\": \"2026-03-17T10:05:31Z\", \"duration_ms\": 43 }\n}\n```\n\n---\n\n### Step 3: Present findings to the user\n\nAfter collecting all the data, I would summarize like this:\n\n---\n\n\"I found **N** requests that came back with a 401 Unauthorized. Here's a breakdown of the failed request bodies:\n\n**req_101 \u00e2\u20ac\u201d POST https://api.myapp.com/v1/users/me**\n- The request included a Bearer token in the `Authorization` header, but the server rejected it (likely expired or revoked).\n- Request body:\n  ```json\n  { \"displayName\": \"Jane Doe\", \"email\": \"jane@example.com\" }\n  ```\n\n**req_108 \u00e2\u20ac\u201d GET https://api.myapp.com/v1/feed**\n- No request body (GET request). The 401 here is likely a missing or invalid token in the headers.\n\n**req_115 \u00e2\u20ac\u201d POST https://api.myapp.com/v1/auth/refresh**\n- This one is notable: the app tried to refresh its token but got a 401 back, which means the refresh token itself is invalid or expired.\n- Request body:\n  ```json\n  { \"refresh_token\": \"dGhpcyBpcyBhIHRlc3Q...\" }\n  ```\n\n**Pattern observed:** The 401s appear to be clustered around an expired or invalid token. The refresh attempt at `req_115` also failing suggests the session may be fully expired. You may want to check whether the token lifecycle or storage is working correctly in the app.\"\n\n---\n\n## Summary of Tool Call Order\n\n| Step | Tool | Arguments | Purpose |\n|------|------|-----------|---------|\n| 1 | `list_requests` | `statusCode: 401, limit: 50` | Get all 401 responses |\n| 2 | `get_request_detail` | `id` for each request with a body | Retrieve full request bodies |\n\nNo calls to `get_response_detail`, `search_traffic`, or `get_traffic_stats` are needed for this specific task \u00e2\u20ac\u201d the user asked specifically about the **failed request bodies**, so fetching request details is sufficient.\n"}], "find-401-errors-with-skill": [{"name": "response.md", "type": "text", "content": "# Response: Finding 401 Errors and Their Request Bodies\n\n## What I Would Say and Do\n\nSince the proxy has already been running and the user has already browsed around the app, we are in **Phase 2** of the workflow \u00e2\u20ac\u201d no need to start the proxy or walk through setup. The user wants to:\n\n1. Find all 401 responses\n2. See what the failed request bodies looked like\n\nHere is exactly what I would say and do, step by step.\n\n---\n\n## Step 1: List all 401 requests\n\nI would call:\n\n```\nlist_requests(statusCode: 401)\n```\n\n**Arguments:**\n```json\n{\n  \"statusCode\": 401\n}\n```\n\n**What I would say to the user:**\n\n> Let me pull up all the requests that got a 401 response.\n\nAfter receiving the result (hypothetical example):\n\n```json\n{\n  \"count\": 4,\n  \"requests\": [\n    { \"id\": \"req_001\", \"method\": \"POST\", \"url\": \"https://api.example.com/v1/auth/token\", \"statusCode\": 401, \"timestamp\": \"2026-03-17T10:12:03Z\", \"contentType\": \"application/json\", \"bodySize\": 312 },\n    { \"id\": \"req_002\", \"method\": \"POST\", \"url\": \"https://api.example.com/v1/user/profile\", \"statusCode\": 401, \"timestamp\": \"2026-03-17T10:13:45Z\", \"contentType\": \"application/json\", \"bodySize\": 88 },\n    { \"id\": \"req_003\", \"method\": \"GET\",  \"url\": \"https://api.example.com/v1/documents/list\", \"statusCode\": 401, \"timestamp\": \"2026-03-17T10:14:10Z\", \"contentType\": null, \"bodySize\": 0 },\n    { \"id\": \"req_004\", \"method\": \"POST\", \"url\": \"https://api.example.com/v1/messages/send\", \"statusCode\": 401, \"timestamp\": \"2026-03-17T10:15:22Z\", \"contentType\": \"application/json\", \"bodySize\": 204 }\n  ]\n}\n```\n\n> Found **4 requests** that returned 401. Here's a summary:\n>\n> | # | Method | URL | Timestamp |\n> |---|--------|-----|-----------|\n> | 1 | POST | /v1/auth/token | 10:12:03 |\n> | 2 | POST | /v1/user/profile | 10:13:45 |\n> | 3 | GET | /v1/documents/list | 10:14:10 |\n> | 4 | POST | /v1/messages/send | 10:15:22 |\n>\n> Now let me fetch the request bodies for each of these.\n\n---\n\n## Step 2: Fetch request details for each 401\n\nFor each request with a non-zero `bodySize` (requests with bodies), I would call `get_request_detail`. The GET request (req_003) has `bodySize: 0` so it has no body \u00e2\u20ac\u201d I would note that and skip fetching its body, but I would still retrieve its details to show headers.\n\nI would make these calls (the first three in parallel since they are independent):\n\n### Call A\n```\nget_request_detail(id: \"req_001\")\n```\n**Arguments:** `{ \"id\": \"req_001\" }`\n\n### Call B\n```\nget_request_detail(id: \"req_002\")\n```\n**Arguments:** `{ \"id\": \"req_002\" }`\n\n### Call C\n```\nget_request_detail(id: \"req_003\")\n```\n**Arguments:** `{ \"id\": \"req_003\" }`\n\n### Call D\n```\nget_request_detail(id: \"req_004\")\n```\n**Arguments:** `{ \"id\": \"req_004\" }`\n\n**What I would say to the user:**\n\n> Fetching the request details for all 4. For the GET request to `/v1/documents/list`, there won't be a body (GET requests don't carry one), but I'll grab its headers too.\n\nAfter receiving results, I would present them like this:\n\n---\n\n> ### 401 #1 \u00e2\u20ac\u201d POST /v1/auth/token\n> **Request body:**\n> ```json\n> {\n>   \"grant_type\": \"password\",\n>   \"username\": \"user@example.com\",\n>   \"password\": \"hunter2\",\n>   \"client_id\": \"mobile-app-prod\"\n> }\n> ```\n>\n> ### 401 #2 \u00e2\u20ac\u201d POST /v1/user/profile\n> **Request body:**\n> ```json\n> {\n>   \"userId\": \"u_8821\"\n> }\n> ```\n>\n> ### 401 #3 \u00e2\u20ac\u201d GET /v1/documents/list\n> **Request body:** None (GET request \u00e2\u20ac\u201d no body)\n> Notable headers: `Authorization: Bearer eyJhbGci...` (token present but rejected)\n>\n> ### 401 #4 \u00e2\u20ac\u201d POST /v1/messages/send\n> **Request body:**\n> ```json\n> {\n>   \"to\": \"contact@example.com\",\n>   \"subject\": \"Hello\",\n>   \"body\": \"This is a test message.\"\n> }\n> ```\n\n---\n\n## Step 3: Share observations and offer next steps\n\n> Here's what stands out:\n>\n> - **Request #1** is hitting the token endpoint with plaintext credentials. The 401 suggests the credentials are being rejected \u00e2\u20ac\u201d possibly wrong password, revoked account, or the client_id is unrecognized.\n> - **Requests #2, #3, and #4** all appear to be authenticated API calls. If these came *after* the failed login, they may be running with an expired or missing token.\n> - **Request #3** shows an Authorization header is being sent, but the server is still returning 401 \u00e2\u20ac\u201d the token may be expired or malformed.\n>\n> Would you like me to:\n> - Pull the **response bodies** for these 401s to see the server's error messages?\n> - Check whether there's a successful auth request nearby (e.g., a 200 on `/v1/auth/token`) and compare the two?\n> - Search all traffic for how the Authorization header is being set across requests?\n\n---\n\n## Summary of MCP Tool Calls Made\n\n| Order | Tool | Key Arguments |\n|-------|------|---------------|\n| 1 | `list_requests` | `statusCode: 401` |\n| 2 (parallel) | `get_request_detail` | `id: \"req_001\"` |\n| 2 (parallel) | `get_request_detail` | `id: \"req_002\"` |\n| 2 (parallel) | `get_request_detail` | `id: \"req_003\"` |\n| 2 (parallel) | `get_request_detail` | `id: \"req_004\"` |\n\nNo proxy start/stop was needed since the proxy was already running and traffic had already been captured.\n"}], "auth-token-leak-old-skill": [{"name": "response.md", "type": "text", "content": "# Response: Auth Token Leak Investigation\n\n## What I Would Tell the User\n\nGreat question \u00e2\u20ac\u201d this is an important security concern. I'll search through all captured traffic to find any requests that include authorization headers or bearer tokens, then report which domains they're going to.\n\n---\n\n## Step 1: Search for Authorization Headers\n\nFirst, I would call `search_traffic` targeting request headers for any `Authorization` header:\n\n**Tool call:**\n```\nsearch_traffic(\n  pattern: \"(?i)authorization\",\n  searchIn: \"request_headers\",\n  limit: 50\n)\n```\n\n**Why:** This catches all requests that include an `Authorization` header, regardless of casing or value type (Bearer, Basic, Digest, etc.).\n\n---\n\n## Step 2: Search for Bearer Tokens in Headers and Body\n\nNext, I would run a second search specifically for bearer token patterns, also scanning the request body in case tokens are being passed as form fields or JSON payloads:\n\n**Tool call:**\n```\nsearch_traffic(\n  pattern: \"(?i)bearer\\\\s+[a-zA-Z0-9\\\\-._~+/]+=*\",\n  searchIn: \"request_headers\",\n  limit: 50\n)\n```\n\n**Tool call:**\n```\nsearch_traffic(\n  pattern: \"(?i)bearer\\\\s+[a-zA-Z0-9\\\\-._~+/]+=*\",\n  searchIn: \"request_body\",\n  limit: 50\n)\n```\n\n**Why:** Bearer tokens are the most common auth mechanism in modern apps. Checking both headers and the request body ensures we don't miss tokens sent in non-standard ways (e.g., as a `token` field in a JSON POST body).\n\n---\n\n## Step 3: Inspect Details for Each Match\n\nFor every request ID returned by the searches above, I would call `get_request_detail` to retrieve the full headers and body:\n\n**Tool call (repeated for each matched request ID, e.g., req_01, req_02, ...):**\n```\nget_request_detail(\"req_01\")\nget_request_detail(\"req_02\")\n// ... and so on for each match\n```\n\n**Why:** The search results give summaries with match highlights, but the full detail call lets me see the exact header values (so I can determine whether it's a real token or a placeholder) and the destination URL (to classify the domain).\n\n---\n\n## Step 4: Compile Domain List\n\nAfter collecting the full details, I would extract the domain from each matched request's URL and group them. I would present a summary like:\n\n**What I would tell the user:**\n\n> Here are all the domains that received requests containing authorization headers or bearer tokens:\n>\n> | Domain | Request Count | Auth Type |\n> |--------|---------------|-----------|\n> | api.yourapp.com | 12 | Bearer (expected) |\n> | auth.microsoft.com | 3 | Bearer (expected \u00e2\u20ac\u201d login flow) |\n> | analytics.thirdparty.io | 2 | Bearer (UNEXPECTED \u00e2\u20ac\u201d investigate) |\n> | cdn.somecdn.net | 1 | Basic (UNEXPECTED \u00e2\u20ac\u201d investigate) |\n>\n> **Flagged for review:** `analytics.thirdparty.io` and `cdn.somecdn.net` are receiving auth credentials but are not typical auth endpoints. This could indicate a token leak \u00e2\u20ac\u201d you should verify whether your app is intentionally sending credentials to these domains.\n\n---\n\n## Step 5: Optional \u00e2\u20ac\u201d Get Traffic Stats for Full Context\n\nIf the user wants broader context (e.g., what percentage of all traffic includes auth headers), I would also call:\n\n**Tool call:**\n```\nget_traffic_stats()\n```\n\nThis returns top domains and total request volume, which helps contextualize how widespread the issue might be.\n\n---\n\n## Summary of Tool Calls (in order)\n\n1. `search_traffic(pattern: \"(?i)authorization\", searchIn: \"request_headers\", limit: 50)`\n2. `search_traffic(pattern: \"(?i)bearer\\\\s+[a-zA-Z0-9\\\\-._~+/]+=*\", searchIn: \"request_headers\", limit: 50)`\n3. `search_traffic(pattern: \"(?i)bearer\\\\s+[a-zA-Z0-9\\\\-._~+/]+=*\", searchIn: \"request_body\", limit: 50)`\n4. `get_request_detail(\"<id>\")` \u00e2\u20ac\u201d for each matched request ID from steps 1\u00e2\u20ac\u201c3\n5. `get_traffic_stats()` \u00e2\u20ac\u201d optional, for broader context\n\nThe final output to the user would be a table of domains receiving auth credentials, with clear flags on any that appear unexpected or suspicious.\n"}], "auth-token-leak-with-skill": [{"name": "response.md", "type": "text", "content": "# Response: Searching Captured Traffic for Auth Token Leaks\n\n## What I Would Say and Do\n\nThis task maps directly to the \"Is my app leaking credentials?\" workflow in the http-toolkit-inspect skill. The MCP is not running, so the steps below describe exactly what I would do if it were.\n\n---\n\n## Step 1: Check proxy status / captured traffic overview\n\nBefore searching, I would call `get_traffic_stats()` to confirm there is captured traffic to search and get a quick overview of what domains have been seen:\n\n**MCP tool call:**\n```\nget_traffic_stats()\n```\n\n**What I would tell the user:**\n\n> Let me first check what traffic has already been captured so I know what we're working with.\n\n**Expected response shape:**\n```json\n{\n  \"totalRequests\": 142,\n  \"byMethod\": { \"GET\": 89, \"POST\": 41, \"OPTIONS\": 12 },\n  \"byStatusCode\": { \"200\": 110, \"401\": 3, \"204\": 14, \"500\": 2, \"404\": 13 },\n  \"averageResponseTimeMs\": 312,\n  \"topDomains\": [\n    \"api.myapp.com\",\n    \"auth.myapp.com\",\n    \"analytics.thirdparty.io\",\n    \"cdn.fonts.net\",\n    \"logs.datadog.com\"\n  ]\n}\n```\n\n> There are 142 captured requests going to 5 distinct domains. Now I'll search for any requests that include authorization headers or bearer tokens.\n\n---\n\n## Step 2: Search request headers for Authorization / Bearer tokens\n\nThe skill's \"Is my app leaking credentials?\" pattern calls for:\n\n```\nsearch_traffic(\"Bearer |Authorization|api.?key\", searchIn: \"request_headers\")\n```\n\n**MCP tool call:**\n```\nsearch_traffic(\n  pattern: \"Bearer |Authorization|api.?key\",\n  searchIn: \"request_headers\",\n  limit: 100\n)\n```\n\n**What I would tell the user:**\n\n> I'm searching all captured request headers for `Authorization` headers, `Bearer` tokens, and API keys now.\n\n**Example response shape:**\n```json\n{\n  \"count\": 7,\n  \"matches\": [\n    {\n      \"id\": \"req_001\",\n      \"method\": \"GET\",\n      \"url\": \"https://api.myapp.com/v2/user/profile\",\n      \"statusCode\": 200,\n      \"timestamp\": \"2026-03-17T10:14:02Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 512,\n      \"matchContext\": \"Authorization: Bearer eyJhbGciOiJSUzI1NiJ9...\"\n    },\n    {\n      \"id\": \"req_019\",\n      \"method\": \"POST\",\n      \"url\": \"https://analytics.thirdparty.io/events\",\n      \"statusCode\": 200,\n      \"timestamp\": \"2026-03-17T10:14:09Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 220,\n      \"matchContext\": \"Authorization: Bearer eyJhbGciOiJSUzI1NiJ9...\"\n    },\n    {\n      \"id\": \"req_034\",\n      \"method\": \"POST\",\n      \"url\": \"https://logs.datadog.com/api/v2/logs\",\n      \"statusCode\": 202,\n      \"timestamp\": \"2026-03-17T10:15:01Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 890,\n      \"matchContext\": \"Authorization: Bearer eyJhbGciOiJSUzI1NiJ9...\"\n    }\n    // ... more matches\n  ]\n}\n```\n\n---\n\n## Step 3: Get full request details on any suspicious matches\n\nFor any request going to a domain that isn't the app's own backend (i.e., third-party domains), I would call `get_request_detail` to see the full headers and confirm the exact token value:\n\n**MCP tool calls (one per suspicious request):**\n```\nget_request_detail(id: \"req_019\")\nget_request_detail(id: \"req_034\")\n```\n\n**What I would tell the user:**\n\n> I found matches on third-party domains. Let me pull the full request details to see exactly what is being sent.\n\n**Example response for req_019:**\n```json\n{\n  \"id\": \"req_019\",\n  \"method\": \"POST\",\n  \"url\": \"https://analytics.thirdparty.io/events\",\n  \"headers\": {\n    \"Authorization\": \"Bearer eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VyXzEyMyIsImV4cCI6MTc0MjI1MDAwMH0.sig\",\n    \"Content-Type\": \"application/json\",\n    \"User-Agent\": \"MyApp/3.2.1 (iOS 17.4)\"\n  },\n  \"body\": \"{\\\"event\\\": \\\"screen_view\\\", \\\"screen\\\": \\\"HomeScreen\\\"}\",\n  \"timestamp\": \"2026-03-17T10:14:09Z\"\n}\n```\n\n---\n\n## Step 4: Summarize findings for the user\n\nAfter collecting all results, I would present a clear summary:\n\n---\n\n**What I would say to the user:**\n\n> Here is what I found after searching all captured traffic for authorization headers and bearer tokens:\n>\n> **Requests with auth tokens, by domain:**\n>\n> | Domain | # Requests | Expected? |\n> |---|---|---|\n> | api.myapp.com | 4 | Yes \u00e2\u20ac\u201d your own backend |\n> | auth.myapp.com | 1 | Yes \u00e2\u20ac\u201d authentication endpoint |\n> | analytics.thirdparty.io | 1 | **Suspicious** |\n> | logs.datadog.com | 1 | **Suspicious** |\n>\n> **The problem:** Your app is sending the same `Authorization: Bearer` token to `analytics.thirdparty.io` and `logs.datadog.com`. These appear to be third-party analytics and logging services \u00e2\u20ac\u201d they should not be receiving your user's auth token.\n>\n> The token found in those requests is:\n> ```\n> eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VyXzEyMyIsImV4cCI6MTc0MjI1MDAwMH0.sig\n> ```\n> This looks like a JWT. If this is your backend authentication token, sending it to third-party services is a security risk \u00e2\u20ac\u201d those services would be able to impersonate the user or access your API on their behalf.\n>\n> **Recommended next steps:**\n> 1. Check where in your code the HTTP client is configured \u00e2\u20ac\u201d look for any global interceptors or headers that attach `Authorization` to all outgoing requests regardless of domain.\n> 2. Scope the `Authorization` header only to requests targeting your own domains (e.g., `*.myapp.com`).\n> 3. If the third-party SDKs (analytics, logging) require authentication, use their own separate API keys \u00e2\u20ac\u201d never your user's auth token.\n>\n> Would you like me to dig deeper into any of these specific requests, or check the response bodies to see what data those third-party services are sending back?\n\n---\n\n## Summary of MCP Tool Call Order\n\n| Order | Tool | Purpose |\n|---|---|---|\n| 1 | `get_traffic_stats()` | Confirm traffic exists, see top domains |\n| 2 | `search_traffic(pattern: \"Bearer \\|Authorization\\|api.?key\", searchIn: \"request_headers\")` | Find all requests with auth headers |\n| 3 | `get_request_detail(id)` | Inspect full headers of suspicious third-party matches |\n\nNo proxy setup was needed because the user indicated traffic is already captured (\"search all the captured traffic\").\n"}], "eval-3-old_skill-run-1": [{"name": "response.md", "type": "text", "content": "# Response: Auth Token Leak Investigation\n\n## What I Would Tell the User\n\nGreat question \u00e2\u20ac\u201d this is an important security concern. I'll search through all captured traffic to find any requests that include authorization headers or bearer tokens, then report which domains they're going to.\n\n---\n\n## Step 1: Search for Authorization Headers\n\nFirst, I would call `search_traffic` targeting request headers for any `Authorization` header:\n\n**Tool call:**\n```\nsearch_traffic(\n  pattern: \"(?i)authorization\",\n  searchIn: \"request_headers\",\n  limit: 50\n)\n```\n\n**Why:** This catches all requests that include an `Authorization` header, regardless of casing or value type (Bearer, Basic, Digest, etc.).\n\n---\n\n## Step 2: Search for Bearer Tokens in Headers and Body\n\nNext, I would run a second search specifically for bearer token patterns, also scanning the request body in case tokens are being passed as form fields or JSON payloads:\n\n**Tool call:**\n```\nsearch_traffic(\n  pattern: \"(?i)bearer\\\\s+[a-zA-Z0-9\\\\-._~+/]+=*\",\n  searchIn: \"request_headers\",\n  limit: 50\n)\n```\n\n**Tool call:**\n```\nsearch_traffic(\n  pattern: \"(?i)bearer\\\\s+[a-zA-Z0-9\\\\-._~+/]+=*\",\n  searchIn: \"request_body\",\n  limit: 50\n)\n```\n\n**Why:** Bearer tokens are the most common auth mechanism in modern apps. Checking both headers and the request body ensures we don't miss tokens sent in non-standard ways (e.g., as a `token` field in a JSON POST body).\n\n---\n\n## Step 3: Inspect Details for Each Match\n\nFor every request ID returned by the searches above, I would call `get_request_detail` to retrieve the full headers and body:\n\n**Tool call (repeated for each matched request ID, e.g., req_01, req_02, ...):**\n```\nget_request_detail(\"req_01\")\nget_request_detail(\"req_02\")\n// ... and so on for each match\n```\n\n**Why:** The search results give summaries with match highlights, but the full detail call lets me see the exact header values (so I can determine whether it's a real token or a placeholder) and the destination URL (to classify the domain).\n\n---\n\n## Step 4: Compile Domain List\n\nAfter collecting the full details, I would extract the domain from each matched request's URL and group them. I would present a summary like:\n\n**What I would tell the user:**\n\n> Here are all the domains that received requests containing authorization headers or bearer tokens:\n>\n> | Domain | Request Count | Auth Type |\n> |--------|---------------|-----------|\n> | api.yourapp.com | 12 | Bearer (expected) |\n> | auth.microsoft.com | 3 | Bearer (expected \u00e2\u20ac\u201d login flow) |\n> | analytics.thirdparty.io | 2 | Bearer (UNEXPECTED \u00e2\u20ac\u201d investigate) |\n> | cdn.somecdn.net | 1 | Basic (UNEXPECTED \u00e2\u20ac\u201d investigate) |\n>\n> **Flagged for review:** `analytics.thirdparty.io` and `cdn.somecdn.net` are receiving auth credentials but are not typical auth endpoints. This could indicate a token leak \u00e2\u20ac\u201d you should verify whether your app is intentionally sending credentials to these domains.\n\n---\n\n## Step 5: Optional \u00e2\u20ac\u201d Get Traffic Stats for Full Context\n\nIf the user wants broader context (e.g., what percentage of all traffic includes auth headers), I would also call:\n\n**Tool call:**\n```\nget_traffic_stats()\n```\n\nThis returns top domains and total request volume, which helps contextualize how widespread the issue might be.\n\n---\n\n## Summary of Tool Calls (in order)\n\n1. `search_traffic(pattern: \"(?i)authorization\", searchIn: \"request_headers\", limit: 50)`\n2. `search_traffic(pattern: \"(?i)bearer\\\\s+[a-zA-Z0-9\\\\-._~+/]+=*\", searchIn: \"request_headers\", limit: 50)`\n3. `search_traffic(pattern: \"(?i)bearer\\\\s+[a-zA-Z0-9\\\\-._~+/]+=*\", searchIn: \"request_body\", limit: 50)`\n4. `get_request_detail(\"<id>\")` \u00e2\u20ac\u201d for each matched request ID from steps 1\u00e2\u20ac\u201c3\n5. `get_traffic_stats()` \u00e2\u20ac\u201d optional, for broader context\n\nThe final output to the user would be a table of domains receiving auth credentials, with clear flags on any that appear unexpected or suspicious.\n"}], "eval-3-with_skill-run-1": [{"name": "response.md", "type": "text", "content": "# Response: Searching Captured Traffic for Auth Token Leaks\n\n## What I Would Say and Do\n\nThis task maps directly to the \"Is my app leaking credentials?\" workflow in the http-toolkit-inspect skill. The MCP is not running, so the steps below describe exactly what I would do if it were.\n\n---\n\n## Step 1: Check proxy status / captured traffic overview\n\nBefore searching, I would call `get_traffic_stats()` to confirm there is captured traffic to search and get a quick overview of what domains have been seen:\n\n**MCP tool call:**\n```\nget_traffic_stats()\n```\n\n**What I would tell the user:**\n\n> Let me first check what traffic has already been captured so I know what we're working with.\n\n**Expected response shape:**\n```json\n{\n  \"totalRequests\": 142,\n  \"byMethod\": { \"GET\": 89, \"POST\": 41, \"OPTIONS\": 12 },\n  \"byStatusCode\": { \"200\": 110, \"401\": 3, \"204\": 14, \"500\": 2, \"404\": 13 },\n  \"averageResponseTimeMs\": 312,\n  \"topDomains\": [\n    \"api.myapp.com\",\n    \"auth.myapp.com\",\n    \"analytics.thirdparty.io\",\n    \"cdn.fonts.net\",\n    \"logs.datadog.com\"\n  ]\n}\n```\n\n> There are 142 captured requests going to 5 distinct domains. Now I'll search for any requests that include authorization headers or bearer tokens.\n\n---\n\n## Step 2: Search request headers for Authorization / Bearer tokens\n\nThe skill's \"Is my app leaking credentials?\" pattern calls for:\n\n```\nsearch_traffic(\"Bearer |Authorization|api.?key\", searchIn: \"request_headers\")\n```\n\n**MCP tool call:**\n```\nsearch_traffic(\n  pattern: \"Bearer |Authorization|api.?key\",\n  searchIn: \"request_headers\",\n  limit: 100\n)\n```\n\n**What I would tell the user:**\n\n> I'm searching all captured request headers for `Authorization` headers, `Bearer` tokens, and API keys now.\n\n**Example response shape:**\n```json\n{\n  \"count\": 7,\n  \"matches\": [\n    {\n      \"id\": \"req_001\",\n      \"method\": \"GET\",\n      \"url\": \"https://api.myapp.com/v2/user/profile\",\n      \"statusCode\": 200,\n      \"timestamp\": \"2026-03-17T10:14:02Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 512,\n      \"matchContext\": \"Authorization: Bearer eyJhbGciOiJSUzI1NiJ9...\"\n    },\n    {\n      \"id\": \"req_019\",\n      \"method\": \"POST\",\n      \"url\": \"https://analytics.thirdparty.io/events\",\n      \"statusCode\": 200,\n      \"timestamp\": \"2026-03-17T10:14:09Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 220,\n      \"matchContext\": \"Authorization: Bearer eyJhbGciOiJSUzI1NiJ9...\"\n    },\n    {\n      \"id\": \"req_034\",\n      \"method\": \"POST\",\n      \"url\": \"https://logs.datadog.com/api/v2/logs\",\n      \"statusCode\": 202,\n      \"timestamp\": \"2026-03-17T10:15:01Z\",\n      \"contentType\": \"application/json\",\n      \"bodySize\": 890,\n      \"matchContext\": \"Authorization: Bearer eyJhbGciOiJSUzI1NiJ9...\"\n    }\n    // ... more matches\n  ]\n}\n```\n\n---\n\n## Step 3: Get full request details on any suspicious matches\n\nFor any request going to a domain that isn't the app's own backend (i.e., third-party domains), I would call `get_request_detail` to see the full headers and confirm the exact token value:\n\n**MCP tool calls (one per suspicious request):**\n```\nget_request_detail(id: \"req_019\")\nget_request_detail(id: \"req_034\")\n```\n\n**What I would tell the user:**\n\n> I found matches on third-party domains. Let me pull the full request details to see exactly what is being sent.\n\n**Example response for req_019:**\n```json\n{\n  \"id\": \"req_019\",\n  \"method\": \"POST\",\n  \"url\": \"https://analytics.thirdparty.io/events\",\n  \"headers\": {\n    \"Authorization\": \"Bearer eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VyXzEyMyIsImV4cCI6MTc0MjI1MDAwMH0.sig\",\n    \"Content-Type\": \"application/json\",\n    \"User-Agent\": \"MyApp/3.2.1 (iOS 17.4)\"\n  },\n  \"body\": \"{\\\"event\\\": \\\"screen_view\\\", \\\"screen\\\": \\\"HomeScreen\\\"}\",\n  \"timestamp\": \"2026-03-17T10:14:09Z\"\n}\n```\n\n---\n\n## Step 4: Summarize findings for the user\n\nAfter collecting all results, I would present a clear summary:\n\n---\n\n**What I would say to the user:**\n\n> Here is what I found after searching all captured traffic for authorization headers and bearer tokens:\n>\n> **Requests with auth tokens, by domain:**\n>\n> | Domain | # Requests | Expected? |\n> |---|---|---|\n> | api.myapp.com | 4 | Yes \u00e2\u20ac\u201d your own backend |\n> | auth.myapp.com | 1 | Yes \u00e2\u20ac\u201d authentication endpoint |\n> | analytics.thirdparty.io | 1 | **Suspicious** |\n> | logs.datadog.com | 1 | **Suspicious** |\n>\n> **The problem:** Your app is sending the same `Authorization: Bearer` token to `analytics.thirdparty.io` and `logs.datadog.com`. These appear to be third-party analytics and logging services \u00e2\u20ac\u201d they should not be receiving your user's auth token.\n>\n> The token found in those requests is:\n> ```\n> eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VyXzEyMyIsImV4cCI6MTc0MjI1MDAwMH0.sig\n> ```\n> This looks like a JWT. If this is your backend authentication token, sending it to third-party services is a security risk \u00e2\u20ac\u201d those services would be able to impersonate the user or access your API on their behalf.\n>\n> **Recommended next steps:**\n> 1. Check where in your code the HTTP client is configured \u00e2\u20ac\u201d look for any global interceptors or headers that attach `Authorization` to all outgoing requests regardless of domain.\n> 2. Scope the `Authorization` header only to requests targeting your own domains (e.g., `*.myapp.com`).\n> 3. If the third-party SDKs (analytics, logging) require authentication, use their own separate API keys \u00e2\u20ac\u201d never your user's auth token.\n>\n> Would you like me to dig deeper into any of these specific requests, or check the response bodies to see what data those third-party services are sending back?\n\n---\n\n## Summary of MCP Tool Call Order\n\n| Order | Tool | Purpose |\n|---|---|---|\n| 1 | `get_traffic_stats()` | Confirm traffic exists, see top domains |\n| 2 | `search_traffic(pattern: \"Bearer \\|Authorization\\|api.?key\", searchIn: \"request_headers\")` | Find all requests with auth headers |\n| 3 | `get_request_detail(id)` | Inspect full headers of suspicious third-party matches |\n\nNo proxy setup was needed because the user indicated traffic is already captured (\"search all the captured traffic\").\n"}]}, "benchmark": {"metadata": {"skill_name": "http-toolkit-inspect", "skill_path": "<path/to/skill>", "executor_model": "<model-name>", "analyzer_model": "<model-name>", "timestamp": "2026-03-18T01:33:31Z", "evals_run": [1, 2, 3], "runs_per_configuration": 3}, "runs": [{"eval_id": 1, "configuration": "old_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 49.3, "tokens": 14154, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Response includes a call or description of calling start_proxy to start the proxy", "passed": true, "evidence": "Step 1 calls start_proxy() with simulated response"}, {"text": "Response mentions installing or trusting the CA certificate (caCertPath / ca.pem)", "passed": true, "evidence": "Step 2b describes installing and trusting the CA certificate from caCertPath"}, {"text": "Response includes Android-specific setup: either network_security_config.xml or mention of certificate trust for API 24+", "passed": true, "evidence": "Includes full network_security_config.xml for API 24+ with debug-overrides \u2014 hardcoded in iteration-1 skill"}, {"text": "Response tells the user to configure their device/WiFi proxy to point at the returned proxy URL", "passed": true, "evidence": "Step 2a includes manual proxy config for Android WiFi settings"}, {"text": "Response asks the user to trigger their app traffic and indicates what to do next (inspect), rather than stopping at setup", "passed": true, "evidence": "Step 3 asks user to trigger traffic and says it will pull captured requests"}], "notes": []}, {"eval_id": 2, "configuration": "old_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 3, "failed": 0, "total": 3, "time_seconds": 48.8, "tokens": 14635, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Response uses list_requests with statusCode: 401 (correct param name and value, not a URL pattern or method filter)", "passed": true, "evidence": "list_requests(statusCode: 401) called correctly"}, {"text": "Response calls or describes calling get_request_detail with an id from the list results", "passed": true, "evidence": "get_request_detail called on each result with non-zero bodySize"}, {"text": "Response references correct return field names: body, headers, contentType \u2014 not 'timing' or 'status' (wrong names from old skill)", "passed": true, "evidence": "Uses correct field names \u2014 iteration-2-baseline has correct return shapes"}], "notes": []}, {"eval_id": 3, "configuration": "old_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 4, "failed": 0, "total": 4, "time_seconds": 55.7, "tokens": 15013, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Response uses search_traffic (not list_requests) to find auth-related traffic", "passed": true, "evidence": "search_traffic called with credential-leak pattern from skill"}, {"text": "Response uses searchIn: 'request_headers' to target authorization headers", "passed": true, "evidence": "searchIn: 'request_headers' used correctly"}, {"text": "Response uses a regex pattern that would match Authorization headers or Bearer tokens", "passed": true, "evidence": "Pattern 'Bearer |Authorization|api.?key' from skill workflow \u2014 same as new skill"}, {"text": "Response explains how to identify which domains are receiving the auth tokens", "passed": true, "evidence": "Domain table with api.myapp.com (expected) vs analytics.third-party-tracker.io, logs.third-party-tracker.io, crash-reports.external-service.net (suspicious)"}], "notes": []}, {"eval_id": 1, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 48.9, "tokens": 13905, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Response includes a call or description of calling start_proxy to start the proxy", "passed": true, "evidence": "Step 1 calls start_proxy() with simulated response showing proxyUrl and caCertPath"}, {"text": "Response mentions installing or trusting the CA certificate (caCertPath / ca.pem)", "passed": true, "evidence": "Step 3 'Install the CA certificate on your Android device' with full instructions"}, {"text": "Response includes Android-specific setup: either network_security_config.xml or mention of certificate trust for API 24+", "passed": true, "evidence": "Note for Android 7+ (API 24+) explains network_security_config.xml \u2014 derived from user saying 'Android app', not hardcoded in skill"}, {"text": "Response tells the user to configure their device/WiFi proxy to point at the returned proxy URL", "passed": true, "evidence": "Step 2 'Set the proxy on your Android device' with hostname and port 8080 instructions"}, {"text": "Response asks the user to trigger their app traffic and indicates what to do next (inspect), rather than stopping at setup", "passed": true, "evidence": "Step 4 'Trigger the traffic you want to capture' then 'let me know and I'll query what was captured'"}], "notes": []}, {"eval_id": 2, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 3, "failed": 0, "total": 3, "time_seconds": 53.5, "tokens": 14622, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Response uses list_requests with statusCode: 401 (correct param name and value, not a URL pattern or method filter)", "passed": true, "evidence": "list_requests(statusCode: 401) \u2014 correct parameter name and value used"}, {"text": "Response calls or describes calling get_request_detail with an id from the list results", "passed": true, "evidence": "get_request_detail called on three POST requests with non-zero bodySize (in parallel)"}, {"text": "Response references correct return field names: body, headers, contentType \u2014 not 'timing' or 'status' (wrong names from old skill)", "passed": true, "evidence": "Uses contentType, bodySize, statusCode in list results. get_request_detail response shows body, headers correctly \u2014 no phantom 'timing' field"}], "notes": []}, {"eval_id": 3, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 4, "failed": 0, "total": 4, "time_seconds": 59.8, "tokens": 15166, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Response uses search_traffic (not list_requests) to find auth-related traffic", "passed": true, "evidence": "search_traffic called with pattern 'Bearer |Authorization|api.?key', searchIn: 'request_headers'"}, {"text": "Response uses searchIn: 'request_headers' to target authorization headers", "passed": true, "evidence": "searchIn: 'request_headers' \u2014 from skill's workflow pattern"}, {"text": "Response uses a regex pattern that would match Authorization headers or Bearer tokens", "passed": true, "evidence": "Pattern 'Bearer |Authorization|api.?key' matches both Authorization header name and Bearer keyword"}, {"text": "Response explains how to identify which domains are receiving the auth tokens", "passed": true, "evidence": "Domain table with api.yourapp.com (expected) vs analytics.thirdparty-tracker.io, logs.datadogservice.net, telemetry.unknown-cdn.xyz (suspicious)"}], "notes": []}], "run_summary": {"old_skill": {"pass_rate": {"mean": 1.0, "stddev": 0.0, "min": 1.0, "max": 1.0}, "time_seconds": {"mean": 51.2667, "stddev": 3.8475, "min": 48.8, "max": 55.7}, "tokens": {"mean": 14600.6667, "stddev": 430.528, "min": 14154, "max": 15013}}, "with_skill": {"pass_rate": {"mean": 1.0, "stddev": 0.0, "min": 1.0, "max": 1.0}, "time_seconds": {"mean": 54.0667, "stddev": 5.4721, "min": 48.9, "max": 59.8}, "tokens": {"mean": 14564.3333, "stddev": 632.4748, "min": 13905, "max": 15166}}, "delta": {"pass_rate": "+0.00", "time_seconds": "-2.8", "tokens": "+36"}}, "notes": []}};
+
+    // ---- State ----
+    let feedbackMap = {};  // run_id -> feedback text
+    let currentIndex = 0;
+    let visitedRuns = new Set();
+
+    // ---- Init ----
+    async function init() {
+      // Load saved feedback from server — but only if this isn't a fresh
+      // iteration (indicated by previous_feedback being present). When
+      // previous feedback exists, the feedback.json on disk is stale from
+      // the prior iteration and should not pre-fill the textareas.
+      const hasPrevious = Object.keys(EMBEDDED_DATA.previous_feedback || {}).length > 0
+        || Object.keys(EMBEDDED_DATA.previous_outputs || {}).length > 0;
+      if (!hasPrevious) {
+        try {
+          const resp = await fetch("/api/feedback");
+          const data = await resp.json();
+          if (data.reviews) {
+            for (const r of data.reviews) feedbackMap[r.run_id] = r.feedback;
+          }
+        } catch { /* first run, no feedback yet */ }
+      }
+
+      document.getElementById("skill-name").textContent = EMBEDDED_DATA.skill_name;
+      showRun(0);
+
+      // Wire up feedback auto-save
+      const textarea = document.getElementById("feedback");
+      let saveTimeout = null;
+      textarea.addEventListener("input", () => {
+        clearTimeout(saveTimeout);
+        document.getElementById("feedback-status").textContent = "";
+        saveTimeout = setTimeout(() => saveCurrentFeedback(), 800);
+      });
+    }
+
+    // ---- Navigation ----
+    function navigate(delta) {
+      const newIndex = currentIndex + delta;
+      if (newIndex >= 0 && newIndex < EMBEDDED_DATA.runs.length) {
+        saveCurrentFeedback();
+        showRun(newIndex);
+      }
+    }
+
+    function updateNavButtons() {
+      document.getElementById("prev-btn").disabled = currentIndex === 0;
+      document.getElementById("next-btn").disabled =
+        currentIndex === EMBEDDED_DATA.runs.length - 1;
+    }
+
+    // ---- Show a run ----
+    function showRun(index) {
+      currentIndex = index;
+      const run = EMBEDDED_DATA.runs[index];
+
+      // Progress
+      document.getElementById("progress").textContent =
+        `${index + 1} of ${EMBEDDED_DATA.runs.length}`;
+
+      // Prompt
+      document.getElementById("prompt-text").textContent = run.prompt;
+
+      // Config badge
+      const badge = document.getElementById("config-badge");
+      const configMatch = run.id.match(/(with_skill|without_skill|new_skill|old_skill)/);
+      if (configMatch) {
+        const config = configMatch[1];
+        const isBaseline = config === "without_skill" || config === "old_skill";
+        badge.textContent = config.replace(/_/g, " ");
+        badge.className = "config-badge " + (isBaseline ? "config-baseline" : "config-primary");
+        badge.style.display = "inline-block";
+      } else {
+        badge.style.display = "none";
+      }
+
+      // Outputs
+      renderOutputs(run);
+
+      // Previous outputs
+      renderPrevOutputs(run);
+
+      // Grades
+      renderGrades(run);
+
+      // Previous feedback
+      const prevFb = (EMBEDDED_DATA.previous_feedback || {})[run.id];
+      const prevEl = document.getElementById("prev-feedback");
+      if (prevFb) {
+        document.getElementById("prev-feedback-text").textContent = prevFb;
+        prevEl.style.display = "block";
+      } else {
+        prevEl.style.display = "none";
+      }
+
+      // Feedback
+      document.getElementById("feedback").value = feedbackMap[run.id] || "";
+      document.getElementById("feedback-status").textContent = "";
+
+      updateNavButtons();
+
+      // Track visited runs and promote done button when all visited
+      visitedRuns.add(index);
+      const doneBtn = document.getElementById("done-btn");
+      if (visitedRuns.size >= EMBEDDED_DATA.runs.length) {
+        doneBtn.classList.add("ready");
+      }
+
+      // Scroll main content to top
+      document.querySelector(".main").scrollTop = 0;
+    }
+
+    // ---- Render outputs ----
+    function renderOutputs(run) {
+      const container = document.getElementById("outputs-body");
+      container.innerHTML = "";
+
+      const outputs = run.outputs || [];
+      if (outputs.length === 0) {
+        container.innerHTML = '<div class="empty-state">No output files</div>';
+        return;
+      }
+
+      for (const file of outputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        // Always show file header with download link
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const content = document.createElement("div");
+        content.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          content.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          content.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          content.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(content, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          content.appendChild(a);
+        } else if (file.type === "error") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          pre.style.color = "var(--red)";
+          content.appendChild(pre);
+        }
+
+        fileDiv.appendChild(content);
+        container.appendChild(fileDiv);
+      }
+    }
+
+    // ---- XLSX rendering via SheetJS ----
+    function renderXlsx(container, b64Data) {
+      try {
+        const raw = Uint8Array.from(atob(b64Data), c => c.charCodeAt(0));
+        const wb = XLSX.read(raw, { type: "array" });
+
+        for (let i = 0; i < wb.SheetNames.length; i++) {
+          const sheetName = wb.SheetNames[i];
+          const ws = wb.Sheets[sheetName];
+
+          if (wb.SheetNames.length > 1) {
+            const sheetLabel = document.createElement("div");
+            sheetLabel.style.cssText =
+              "font-weight:600; font-size:0.8rem; color:#b0aea5; margin-top:0.5rem; margin-bottom:0.25rem;";
+            sheetLabel.textContent = "Sheet: " + sheetName;
+            container.appendChild(sheetLabel);
+          }
+
+          const htmlStr = XLSX.utils.sheet_to_html(ws, { editable: false });
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = htmlStr;
+          container.appendChild(wrapper);
+        }
+      } catch (err) {
+        container.textContent = "Error rendering spreadsheet: " + err.message;
+      }
+    }
+
+    // ---- Grades ----
+    function renderGrades(run) {
+      const section = document.getElementById("grades-section");
+      const content = document.getElementById("grades-content");
+
+      if (!run.grading) {
+        section.style.display = "none";
+        return;
+      }
+
+      const grading = run.grading;
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("grades-arrow").classList.remove("open");
+
+      const summary = grading.summary || {};
+      const expectations = grading.expectations || [];
+
+      let html = '<div style="padding: 1rem;">';
+
+      // Summary line
+      const passRate = summary.pass_rate != null
+        ? Math.round(summary.pass_rate * 100) + "%"
+        : "?";
+      const badgeClass = summary.pass_rate >= 0.8 ? "grade-pass" : summary.pass_rate >= 0.5 ? "" : "grade-fail";
+      html += '<div class="grades-summary">';
+      html += '<span class="grade-badge ' + badgeClass + '">' + passRate + '</span>';
+      html += '<span>' + (summary.passed || 0) + ' passed, ' + (summary.failed || 0) + ' failed of ' + (summary.total || 0) + '</span>';
+      html += '</div>';
+
+      // Assertions list
+      html += '<ul class="assertion-list">';
+      for (const exp of expectations) {
+        const statusClass = exp.passed ? "pass" : "fail";
+        const statusIcon = exp.passed ? "\u2713" : "\u2717";
+        html += '<li class="assertion-item">';
+        html += '<span class="assertion-status ' + statusClass + '">' + statusIcon + '</span>';
+        html += '<span>' + escapeHtml(exp.text) + '</span>';
+        if (exp.evidence) {
+          html += '<div class="assertion-evidence">' + escapeHtml(exp.evidence) + '</div>';
+        }
+        html += '</li>';
+      }
+      html += '</ul>';
+
+      html += '</div>';
+      content.innerHTML = html;
+    }
+
+    function toggleGrades() {
+      const content = document.getElementById("grades-content");
+      const arrow = document.getElementById("grades-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Previous outputs (collapsible) ----
+    function renderPrevOutputs(run) {
+      const section = document.getElementById("prev-outputs-section");
+      const content = document.getElementById("prev-outputs-content");
+      const prevOutputs = (EMBEDDED_DATA.previous_outputs || {})[run.id];
+
+      if (!prevOutputs || prevOutputs.length === 0) {
+        section.style.display = "none";
+        return;
+      }
+
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("prev-outputs-arrow").classList.remove("open");
+
+      // Render the files into the content area
+      content.innerHTML = "";
+      const wrapper = document.createElement("div");
+      wrapper.style.padding = "1rem";
+
+      for (const file of prevOutputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const fc = document.createElement("div");
+        fc.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          fc.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          fc.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          fc.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(fc, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          fc.appendChild(a);
+        }
+
+        fileDiv.appendChild(fc);
+        wrapper.appendChild(fileDiv);
+      }
+
+      content.appendChild(wrapper);
+    }
+
+    function togglePrevOutputs() {
+      const content = document.getElementById("prev-outputs-content");
+      const arrow = document.getElementById("prev-outputs-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Feedback (saved to server -> feedback.json) ----
+    function saveCurrentFeedback() {
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // Build reviews array from map
+      const reviews = [];
+      for (const [run_id, feedback] of Object.entries(feedbackMap)) {
+        if (feedback.trim()) {
+          reviews.push({ run_id, feedback, timestamp: new Date().toISOString() });
+        }
+      }
+
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviews, status: "in_progress" }),
+      }).then(() => {
+        document.getElementById("feedback-status").textContent = "Saved";
+      }).catch(() => {
+        // Static mode or server unavailable — no-op on auto-save,
+        // feedback will be downloaded on final submit
+        document.getElementById("feedback-status").textContent = "Will download on submit";
+      });
+    }
+
+    // ---- Done ----
+    function showDoneDialog() {
+      // Save current textarea to feedbackMap (but don't POST yet)
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // POST once with status: complete — include ALL runs so the model
+      // can distinguish "no feedback" (looks good) from "not reviewed"
+      const reviews = [];
+      const ts = new Date().toISOString();
+      for (const r of EMBEDDED_DATA.runs) {
+        reviews.push({ run_id: r.id, feedback: feedbackMap[r.id] || "", timestamp: ts });
+      }
+      const payload = JSON.stringify({ reviews, status: "complete" }, null, 2);
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+      }).then(() => {
+        document.getElementById("done-overlay").classList.add("visible");
+      }).catch(() => {
+        // Server not available (static mode) — download as file
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "feedback.json";
+        a.click();
+        URL.revokeObjectURL(url);
+        document.getElementById("done-overlay").classList.add("visible");
+      });
+    }
+
+    function closeDoneDialog() {
+      // Reset status back to in_progress
+      saveCurrentFeedback();
+      document.getElementById("done-overlay").classList.remove("visible");
+    }
+
+    // ---- Toast ----
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("visible");
+      setTimeout(() => toast.classList.remove("visible"), 2000);
+    }
+
+    // ---- Keyboard nav ----
+    document.addEventListener("keydown", (e) => {
+      // Don't capture when typing in textarea
+      if (e.target.tagName === "TEXTAREA") return;
+
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        navigate(-1);
+      } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        navigate(1);
+      }
+    });
+
+    // ---- Util ----
+    function getDownloadUri(file) {
+      if (file.data_uri) return file.data_uri;
+      if (file.data_b64) return "data:application/octet-stream;base64," + file.data_b64;
+      if (file.type === "text") return "data:text/plain;charset=utf-8," + encodeURIComponent(file.content);
+      return "#";
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ---- View switching ----
+    function switchView(view) {
+      document.querySelectorAll(".view-tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+      document.querySelector(`[onclick="switchView('${view}')"]`).classList.add("active");
+      document.getElementById("panel-" + view).classList.add("active");
+    }
+
+    // ---- Benchmark rendering ----
+    function renderBenchmark() {
+      const data = EMBEDDED_DATA.benchmark;
+      if (!data) return;
+
+      // Show the tabs
+      document.getElementById("view-tabs").style.display = "flex";
+
+      const container = document.getElementById("benchmark-content");
+      const summary = data.run_summary || {};
+      const metadata = data.metadata || {};
+      const notes = data.notes || [];
+
+      let html = "";
+
+      // Header
+      html += "<h2 style='font-family: Poppins, sans-serif; margin-bottom: 0.5rem;'>Benchmark Results</h2>";
+      html += "<p style='color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;'>";
+      if (metadata.skill_name) html += "<strong>" + escapeHtml(metadata.skill_name) + "</strong> &mdash; ";
+      if (metadata.timestamp) html += metadata.timestamp + " &mdash; ";
+      if (metadata.evals_run) html += "Evals: " + metadata.evals_run.join(", ") + " &mdash; ";
+      html += (metadata.runs_per_configuration || "?") + " runs per configuration";
+      html += "</p>";
+
+      // Summary table
+      html += '<table class="benchmark-table">';
+
+      function fmtStat(stat, pct) {
+        if (!stat) return "—";
+        const suffix = pct ? "%" : "";
+        const m = pct ? (stat.mean * 100).toFixed(0) : stat.mean.toFixed(1);
+        const s = pct ? (stat.stddev * 100).toFixed(0) : stat.stddev.toFixed(1);
+        return m + suffix + " ± " + s + suffix;
+      }
+
+      function deltaClass(val) {
+        if (!val) return "";
+        const n = parseFloat(val);
+        if (n > 0) return "benchmark-delta-positive";
+        if (n < 0) return "benchmark-delta-negative";
+        return "";
+      }
+
+      // Discover config names dynamically (everything except "delta")
+      const configs = Object.keys(summary).filter(k => k !== "delta");
+      const configA = configs[0] || "config_a";
+      const configB = configs[1] || "config_b";
+      const labelA = configA.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const labelB = configB.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const a = summary[configA] || {};
+      const b = summary[configB] || {};
+      const delta = summary.delta || {};
+
+      html += "<thead><tr><th>Metric</th><th>" + escapeHtml(labelA) + "</th><th>" + escapeHtml(labelB) + "</th><th>Delta</th></tr></thead>";
+      html += "<tbody>";
+
+      html += "<tr><td><strong>Pass Rate</strong></td>";
+      html += "<td>" + fmtStat(a.pass_rate, true) + "</td>";
+      html += "<td>" + fmtStat(b.pass_rate, true) + "</td>";
+      html += '<td class="' + deltaClass(delta.pass_rate) + '">' + (delta.pass_rate || "—") + "</td></tr>";
+
+      // Time (only show row if data exists)
+      if (a.time_seconds || b.time_seconds) {
+        html += "<tr><td><strong>Time (s)</strong></td>";
+        html += "<td>" + fmtStat(a.time_seconds, false) + "</td>";
+        html += "<td>" + fmtStat(b.time_seconds, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.time_seconds) + '">' + (delta.time_seconds ? delta.time_seconds + "s" : "—") + "</td></tr>";
+      }
+
+      // Tokens (only show row if data exists)
+      if (a.tokens || b.tokens) {
+        html += "<tr><td><strong>Tokens</strong></td>";
+        html += "<td>" + fmtStat(a.tokens, false) + "</td>";
+        html += "<td>" + fmtStat(b.tokens, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.tokens) + '">' + (delta.tokens || "—") + "</td></tr>";
+      }
+
+      html += "</tbody></table>";
+
+      // Per-eval breakdown (if runs data available)
+      const runs = data.runs || [];
+      if (runs.length > 0) {
+        const evalIds = [...new Set(runs.map(r => r.eval_id))].sort((a, b) => a - b);
+
+        html += "<h3 style='font-family: Poppins, sans-serif; margin-bottom: 0.75rem;'>Per-Eval Breakdown</h3>";
+
+        const hasTime = runs.some(r => r.result && r.result.time_seconds != null);
+        const hasErrors = runs.some(r => r.result && r.result.errors > 0);
+
+        for (const evalId of evalIds) {
+          const evalRuns = runs.filter(r => r.eval_id === evalId);
+          const evalName = evalRuns[0] && evalRuns[0].eval_name ? evalRuns[0].eval_name : "Eval " + evalId;
+
+          html += "<h4 style='font-family: Poppins, sans-serif; margin: 1rem 0 0.5rem; color: var(--text);'>" + escapeHtml(evalName) + "</h4>";
+          html += '<table class="benchmark-table">';
+          html += "<thead><tr><th>Config</th><th>Run</th><th>Pass Rate</th>";
+          if (hasTime) html += "<th>Time (s)</th>";
+          if (hasErrors) html += "<th>Crashes During Execution</th>";
+          html += "</tr></thead>";
+          html += "<tbody>";
+
+          // Group by config and render with average rows
+          const configGroups = [...new Set(evalRuns.map(r => r.configuration))];
+          for (let ci = 0; ci < configGroups.length; ci++) {
+            const config = configGroups[ci];
+            const configRuns = evalRuns.filter(r => r.configuration === config);
+            if (configRuns.length === 0) continue;
+
+            const rowClass = ci === 0 ? "benchmark-row-with" : "benchmark-row-without";
+            const configLabel = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+            for (const run of configRuns) {
+              const r = run.result || {};
+              const prClass = r.pass_rate >= 0.8 ? "benchmark-delta-positive" : r.pass_rate < 0.5 ? "benchmark-delta-negative" : "";
+              html += '<tr class="' + rowClass + '">';
+              html += "<td>" + configLabel + "</td>";
+              html += "<td>" + run.run_number + "</td>";
+              html += '<td class="' + prClass + '">' + ((r.pass_rate || 0) * 100).toFixed(0) + "% (" + (r.passed || 0) + "/" + (r.total || 0) + ")</td>";
+              if (hasTime) html += "<td>" + (r.time_seconds != null ? r.time_seconds.toFixed(1) : "—") + "</td>";
+              if (hasErrors) html += "<td>" + (r.errors || 0) + "</td>";
+              html += "</tr>";
+            }
+
+            // Average row
+            const rates = configRuns.map(r => (r.result || {}).pass_rate || 0);
+            const avgRate = rates.reduce((a, b) => a + b, 0) / rates.length;
+            const avgPrClass = avgRate >= 0.8 ? "benchmark-delta-positive" : avgRate < 0.5 ? "benchmark-delta-negative" : "";
+            html += '<tr class="benchmark-row-avg ' + rowClass + '">';
+            html += "<td>" + configLabel + "</td>";
+            html += "<td>Avg</td>";
+            html += '<td class="' + avgPrClass + '">' + (avgRate * 100).toFixed(0) + "%</td>";
+            if (hasTime) {
+              const times = configRuns.map(r => (r.result || {}).time_seconds).filter(t => t != null);
+              html += "<td>" + (times.length ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(1) : "—") + "</td>";
+            }
+            if (hasErrors) html += "<td></td>";
+            html += "</tr>";
+          }
+          html += "</tbody></table>";
+
+          // Per-assertion detail for this eval
+          const runsWithExpectations = {};
+          for (const config of configGroups) {
+            runsWithExpectations[config] = evalRuns.filter(r => r.configuration === config && r.expectations && r.expectations.length > 0);
+          }
+          const hasAnyExpectations = Object.values(runsWithExpectations).some(runs => runs.length > 0);
+          if (hasAnyExpectations) {
+            // Collect all unique assertion texts across all configs
+            const allAssertions = [];
+            const seen = new Set();
+            for (const config of configGroups) {
+              for (const run of runsWithExpectations[config]) {
+                for (const exp of (run.expectations || [])) {
+                  if (!seen.has(exp.text)) {
+                    seen.add(exp.text);
+                    allAssertions.push(exp.text);
+                  }
+                }
+              }
+            }
+
+            html += '<table class="benchmark-table" style="margin-top: 0.5rem;">';
+            html += "<thead><tr><th>Assertion</th>";
+            for (const config of configGroups) {
+              const label = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+              html += "<th>" + escapeHtml(label) + "</th>";
+            }
+            html += "</tr></thead><tbody>";
+
+            for (const assertionText of allAssertions) {
+              html += "<tr><td>" + escapeHtml(assertionText) + "</td>";
+
+              for (const config of configGroups) {
+                html += "<td>";
+                for (const run of runsWithExpectations[config]) {
+                  const exp = (run.expectations || []).find(e => e.text === assertionText);
+                  if (exp) {
+                    const cls = exp.passed ? "benchmark-delta-positive" : "benchmark-delta-negative";
+                    const icon = exp.passed ? "\u2713" : "\u2717";
+                    html += '<span class="' + cls + '" title="Run ' + run.run_number + ': ' + escapeHtml(exp.evidence || "") + '">' + icon + "</span> ";
+                  } else {
+                    html += "— ";
+                  }
+                }
+                html += "</td>";
+              }
+              html += "</tr>";
+            }
+            html += "</tbody></table>";
+          }
+        }
+      }
+
+      // Notes
+      if (notes.length > 0) {
+        html += '<div class="benchmark-notes">';
+        html += "<h3>Analysis Notes</h3>";
+        html += "<ul>";
+        for (const note of notes) {
+          html += "<li>" + escapeHtml(note) + "</li>";
+        }
+        html += "</ul></div>";
+      }
+
+      container.innerHTML = html;
+    }
+
+    // ---- Start ----
+    init();
+    renderBenchmark();
+  </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "name": "prism",
+  "description": "Track stacked PR dependencies and completion status with a live dashboard. Auto-updates when PRs are created.",
+  "version": "1.1.0",
+  "author": {
+    "name": "Yemi Shin"
+  }
+}

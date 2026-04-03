@@ -1,0 +1,6 @@
+{
+  "eval_id": 2,
+  "eval_name": "find-401-errors",
+  "prompt": "The proxy has been running for a few minutes and I browsed around the app. I'm seeing a lot of 401 errors. Can you find them and show me what the failed request bodies look like?",
+  "assertions": []
+}

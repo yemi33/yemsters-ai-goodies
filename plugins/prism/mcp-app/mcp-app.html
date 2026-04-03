@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRism</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0d1117; color: #c9d1d9; padding: 24px; min-height: 100vh; overflow-y: auto; }
+  h1 { font-size: 1.4rem; margin-bottom: 16px; color: #58a6ff; display: flex; align-items: center; gap: 10px; }
+  .logo { width: 28px; height: 28px; flex-shrink: 0; }
+
+  .loading { text-align: center; padding: 48px; color: #8b949e; font-size: 1rem; }
+
+  .progress-container { margin-bottom: 20px; }
+  .progress-stats { font-size: 0.8rem; color: #8b949e; margin-bottom: 6px; display: flex; justify-content: space-between; }
+  .progress-bar { height: 8px; background: #21262d; border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; background: linear-gradient(90deg, #3fb950, #58a6ff); }
+
+  .waves { display: flex; flex-wrap: wrap; gap: 16px; padding-bottom: 16px; }
+  .wave { flex: 1 1 180px; background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; }
+  .wave-title { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #8b949e; margin-bottom: 12px; }
+  .pr-card { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 12px; margin-bottom: 8px; transition: border-color 0.2s, background 0.2s; }
+  .pr-card:hover { border-color: #58a6ff; }
+  .pr-card.status-done { border-left: 3px solid #3fb950; }
+  .pr-card.status-in-progress { border-left: 3px solid #d29922; }
+  .pr-id { font-weight: 700; font-size: 0.9rem; color: #58a6ff; }
+  .pr-title { font-size: 0.85rem; margin-top: 4px; color: #c9d1d9; }
+  .pr-meta { font-size: 0.75rem; color: #8b949e; margin-top: 6px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .badge { display: inline-block; padding: 1px 6px; border-radius: 10px; font-size: 0.7rem; font-weight: 600; }
+  .badge-todo { background: #30363d; color: #8b949e; }
+  .badge-in-progress { background: #2d2200; color: #d29922; }
+  .badge-done { background: #0c2d1f; color: #3fb950; }
+  .badge-risk-low { background: #0c2d1f; color: #3fb950; }
+  .badge-risk-medium { background: #2d2200; color: #d29922; }
+  .badge-risk-high { background: #3d1010; color: #f85149; }
+  .deps { font-size: 0.7rem; color: #6e7681; margin-top: 4px; }
+
+  .pr-actions { margin-top: 8px; }
+  .btn-view-pr { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; font-size: 0.75rem; font-weight: 600; color: #ffffff; background: #238636; border: 1px solid #2ea043; border-radius: 6px; cursor: pointer; text-decoration: none; transition: background 0.15s; }
+  .btn-view-pr:hover { background: #2ea043; }
+  .btn-view-pr svg { width: 14px; height: 14px; fill: currentColor; }
+
+  .tasks-section { margin-top: 24px; }
+  .tasks-section h2 { font-size: 1rem; color: #8b949e; margin-bottom: 8px; }
+  .task { font-size: 0.85rem; padding: 4px 0; }
+  .task-done { text-decoration: line-through; color: #6e7681; }
+
+  .error { text-align: center; padding: 48px; color: #f85149; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<h1>
+  <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="rainbow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff6b6b"/><stop offset="25%" stop-color="#ffd93d"/>
+      <stop offset="50%" stop-color="#6bcb77"/><stop offset="75%" stop-color="#4d96ff"/>
+      <stop offset="100%" stop-color="#9b59b6"/>
+    </linearGradient></defs>
+    <polygon points="50,8 92,85 8,85" fill="none" stroke="url(#rainbow)" stroke-width="5" stroke-linejoin="round"/>
+    <line x1="50" y1="8" x2="30" y2="85" stroke="#ffffff15" stroke-width="1.5"/>
+    <line x1="50" y1="8" x2="70" y2="85" stroke="#ffffff15" stroke-width="1.5"/>
+    <line x1="20" y1="55" x2="80" y2="55" stroke="#ffffff15" stroke-width="1.5"/>
+  </svg>
+  PRism
+</h1>
+<div id="progress"></div>
+<div id="root"><div class="loading">Waiting for PR data...</div></div>
+<script type="module" src="/src/mcp-app.ts"></script>
+</body>
+</html>

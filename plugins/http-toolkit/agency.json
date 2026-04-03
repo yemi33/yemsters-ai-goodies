@@ -1,0 +1,9 @@
+{
+  "engines": ["claude", "copilot"],
+  "category": "developer-tools",
+  "permissions": {
+    "mcpServers": ["http-toolkit"],
+    "tools": ["*"],
+    "fileAccess": "read"
+  }
+}

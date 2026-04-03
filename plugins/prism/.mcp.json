@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "prism": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp-app/start.js"]
+    }
+  }
+}

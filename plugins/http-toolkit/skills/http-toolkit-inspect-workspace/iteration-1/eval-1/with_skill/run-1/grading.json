@@ -1,0 +1,38 @@
+{
+  "eval_id": 1,
+  "eval_name": "android-setup",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "Response includes a call or description of calling start_proxy to start the proxy",
+      "passed": true,
+      "evidence": "Step 1 explicitly calls start_proxy() and shows the expected return shape with proxyUrl and caCertPath"
+    },
+    {
+      "text": "Response mentions installing or trusting the CA certificate (caCertPath / ca.pem)",
+      "passed": true,
+      "evidence": "Section B 'Install the CA certificate on your device' with full instructions for installing ca.pem"
+    },
+    {
+      "text": "Response includes Android-specific setup: either network_security_config.xml or mention of certificate trust for API 24+",
+      "passed": true,
+      "evidence": "Includes full network_security_config.xml snippet with <debug-overrides><trust-anchors><certificates src=\"user\" /></trust-anchors></debug-overrides> and AndroidManifest.xml reference"
+    },
+    {
+      "text": "Response tells the user to configure their device/WiFi proxy to point at the returned proxy URL",
+      "passed": true,
+      "evidence": "Section A 'Configure your Android device to use the proxy' with manual WiFi proxy instructions including hostname and port 8080"
+    },
+    {
+      "text": "Response asks the user to trigger their app traffic and indicates what to do next (inspect), rather than stopping at setup",
+      "passed": true,
+      "evidence": "Step 3: 'Go ahead and use your app \u00e2\u20ac\u201d tap through the flows you want to inspect. Then let me know and I'll pull up what was captured.'"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  }
+}

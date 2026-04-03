@@ -1,0 +1,19 @@
+{
+  "name": "http-toolkit",
+  "description": "HTTPS-intercepting proxy MCP server for capturing and inspecting network traffic from mobile apps, browsers, and other HTTP clients",
+  "version": "0.1.0",
+  "author": {
+    "name": "Yemi Shin",
+    "email": "yemishin@microsoft.com"
+  },
+  "keywords": [
+    "http",
+    "https",
+    "proxy",
+    "network",
+    "traffic",
+    "inspection",
+    "debugging",
+    "developer-tools"
+  ]
+}
